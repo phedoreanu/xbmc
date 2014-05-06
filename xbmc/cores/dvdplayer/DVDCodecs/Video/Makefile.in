@@ -38,8 +38,14 @@ ifeq (@USE_LIBSTAGEFRIGHT@,1)
 SRCS += DVDVideoCodecStageFright.cpp
 endif
 
+ifeq (@USE_MFC5@,1)
+SRCS += DVDVideoCodecMfc5.cpp
+endif
+ifeq (@USE_MFC6@,1)
+SRCS += DVDVideoCodecMfc6.cpp
+endif
+
 LIB=Video.a
 
 include @abs_top_srcdir@/Makefile.include
--include $(patsubst %.cpp,%.P,$(patsubst %.c,%.P,$(SRCS)))
-
+-include $(patsubst %.cpp,%.P,$(patsubst %.c,%.P,$(patsubst %.S,,$(SRCS)))) 

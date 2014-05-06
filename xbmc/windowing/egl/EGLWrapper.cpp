@@ -26,6 +26,8 @@
 #include "EGLNativeTypeAndroid.h"
 #include "EGLNativeTypeAmlogic.h"
 #include "EGLNativeTypeRaspberryPI.h"
+#include "EGLNativeTypeHybris.h"
+#include "EGLNativeTypeOdroid.h"
 #include "EGLNativeTypeWayland.h"
 #include "EGLWrapper.h"
 
@@ -83,7 +85,9 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
   if ((nativeGuess = CreateEGLNativeType<CEGLNativeTypeWayland>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation)))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeOdroid>(implementation)))
   {
     m_nativeTypes = nativeGuess;
 
@@ -371,6 +375,7 @@ bool CEGLWrapper::SetVSync(EGLDisplay display, bool enable)
   EGLBoolean status;
   // depending how buffers are setup, eglSwapInterval
   // might fail so let caller decide if this is an error.
+  enable = true; // Very dirty fix for vsync
   status = eglSwapInterval(display, enable ? 1 : 0);
   CheckError();
   return status;

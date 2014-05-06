@@ -188,6 +188,16 @@ libusb_disabled_udev_found="== libusb disabled. =="
 libcec_enabled="== libcec enabled. =="
 libcec_disabled="== libcec disabled. CEC adapter support will not be available. =="
 
+# Odroid stuff
+mfc5_enabled="== MFC5 enabled. =="
+mfc5_disabled="== MFC5 disabled. =="
+mfc6_enabled="== MFC6 enabled. =="
+mfc6_disabled="== MFC6 disabled. =="
+hybris_enabled="== Libhybris enabled. =="
+hybris_disabled="== Libhybris disabled. =="
+odroidgles_enabled="== Odroid GLES enabled. =="
+odroidgles_disabled="== Odroid GLES disabled. =="
+
 # External library message strings
 external_libraries_enabled="== Use of all supported external libraries enabled. =="
 external_libraries_disabled="== Use of all supported external libraries disabled. =="
@@ -576,6 +586,30 @@ AC_ARG_ENABLE([libav-compat],
   [use_libav_hacks=$enableval],
   [use_libav_hacks=no])
 
+AC_ARG_ENABLE([mfc5],
+  [AS_HELP_STRING([--enable-mfc5],
+  [enable use of MFC5 hardware decoder (default is no) 'Linux only'])],
+  [use_mfc5=$enableval],
+  [use_mfc5=no])
+
+AC_ARG_ENABLE([mfc6],
+  [AS_HELP_STRING([--enable-mfc6],
+  [enable use of MFC6 hardware decoder (default is no) 'Linux only'])],
+  [use_mfc6=$enableval],
+  [use_mfc6=no])
+
+AC_ARG_ENABLE([hybris],
+  [AS_HELP_STRING([--enable-hybris],
+  [enable use of Libhybris (default is no) 'Linux only'])],
+  [use_hybris=$enableval],
+  [use_hybris=no])
+
+AC_ARG_ENABLE([odroidgles],
+  [AS_HELP_STRING([--enable-odroidgles],
+  [enable use of Odroid GLES (default is no) 'Linux only'])],
+  [use_odroidgles=$enableval],
+  [use_odroidgles=no])
+
 ### End of external library options
 
 if test "x$host_vendor" != "xapple"; then
@@ -750,6 +784,29 @@ case $use_platform in
      CXXFLAGS="$CXXFLAGS"
      ffmpeg_target_os=linux
      ;;
+  odroid)
+     target_platform=target_odroid
+     use_neon=yes
+     use_cpu=cortex-a9
+     use_odroidgles=yes
+     use_mfc5=yes
+     ARCH="arm"
+     CFLAGS="$CFLAGS"
+     CXXFLAGS="$CXXFLAGS"
+     ffmpeg_target_os=linux
+     ;;
+  odroid-xu)
+     target_platform=target_odroid_xu
+     use_neon=yes
+     use_cpu=cortex-a15
+     use_hybris=yes
+     use_mfc6=yes
+     ARCH="arm"
+     CFLAGS="$CFLAGS"
+     CXXFLAGS="$CXXFLAGS"
+     ffmpeg_target_os=linux
+     ;;
+
 esac
 
 XBMC_SETUP_ARCH_DEFINES()
@@ -1761,6 +1818,41 @@ else
   AC_MSG_NOTICE($libcap_disabled)
 fi
 
+# Odroid
+
+if test "x$use_mfc5" != "xno"; then
+  USE_MFC5=1;
+  AC_DEFINE(HAS_MFC5, [1], [Define if MFC5 hardware decoder is present])
+fi
+
+if test "x$use_mfc6" != "xno"; then
+  USE_MFC6=1;
+  AC_DEFINE(HAS_MFC6, [1], [Define if MFC6 hardware decoder is present])
+fi
+
+if test "x$use_hybris" != "xno"; then
+  AC_SUBST(ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX -DTARGET_HYBRIS")
+  USE_HYBRIS=1;
+  AC_DEFINE(HAS_EGLGLES, [1], [Define if supporting EGL based GLES Framebuffer])
+  AC_DEFINE(HAS_HYBRIS, [1], [Define if supporting Hybris based systems])
+  PKG_CHECK_MODULES([HWCOMPOSEREGL],  [hwcomposer-egl >= 0.1],
+    [INCLUDES="$INCLUDES -I/usr/include/hybris $HWCOMPOSEREGL_CFLAGS"; LIBS="$LIBS $HWCOMPOSEREGL_LIBS"],
+    AC_MSG_ERROR($missing_library))
+  PKG_CHECK_MODULES([HYBRISEGL],  [hybris-egl-platform >= 0.1],
+    [INCLUDES="$INCLUDES $HYBRISEGL_CFLAGS"; LIBS="$LIBS $HYBRISEGL_LIBS"],
+    AC_MSG_ERROR($missing_library))
+  PKG_CHECK_MODULES([LIBHARDWARE],  [libhardware >= 0.1],
+    [INCLUDES="$INCLUDES $LIBHARDWARE_CFLAGS"; LIBS="$LIBS $LIBHARDWARE_LIBS -lsync -lmedia"],
+    AC_MSG_ERROR($missing_library))
+fi
+
+if test "x$use_odroidgles" != "xno"; then
+  USE_ODROIDGLES=1;
+  AC_SUBST(ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX -DTARGET_ODROID")
+  AC_DEFINE(HAS_ODROIDGLES, [1], [Define if supporting Odroid-U2/U3/X/X2 based GLES Framebuffer])
+fi
+
+
 ### External libraries checks
 
 # Hacks for supporting libav
@@ -2472,6 +2564,32 @@ else
   final_message="$final_message\n  additional codecs:\tNo"
 fi
 
+### Odroid stuff
+
+if test "x$use_hybris" != "xno"; then
+  final_message="$final_message\n  Odroid Hybris support:\tYes"
+else
+  final_message="$final_message\n  Odroid Hybris support:\tNo"
+fi
+
+if test "x$use_odroidgles" != "xno"; then
+  final_message="$final_message\n  Odroid GLES support:\tYes"
+else
+  final_message="$final_message\n  Odroid GLES support:\tNo"
+fi
+
+if test "x$use_mfc5" != "xno"; then
+  final_message="$final_message\n  MFC5 support:\tYes"
+else
+  final_message="$final_message\n  MFC5 support:\tNo"
+fi
+
+if test "x$use_mfc6" != "xno"; then
+  final_message="$final_message\n  MFC6 support:\tYes"
+else
+  final_message="$final_message\n  MFC6 support:\tNo"
+fi
+
 ### External libraries messages
 
 if test "$use_external_ffmpeg" = "yes"; then
@@ -2668,6 +2786,10 @@ AC_SUBST(USE_DOXYGEN)
 AC_SUBST(USE_PVR_ADDONS)
 AC_SUBST(GNUTLS_ALL_LIBS)
 AC_SUBST(VORBISENC_ALL_LIBS)
+AC_SUBST(USE_HYBRIS)
+AC_SUBST(USE_ODROIDGLES)
+AC_SUBST(USE_MFC5)
+AC_SUBST(USE_MFC6)
 
 # pushd and popd are not available in other shells besides bash, so implement
 # our own pushd/popd functions
