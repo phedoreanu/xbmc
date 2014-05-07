@@ -358,11 +358,7 @@ bool CDVDVideoCodecMfc5::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
   CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT S_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
 
   // Calculate FIMC final picture size be scaled to fit screen
-#if MAJOR_VERSION < 13
-  RESOLUTION_INFO& res_info = g_settings.m_ResInfo[g_graphicsContext.GetVideoResolution()];
-#else
   RESOLUTION_INFO res_info =  CDisplaySettings::Get().GetResolutionInfo(g_graphicsContext.GetVideoResolution());
-#endif
   double ratio = std::min((double)res_info.iScreenWidth / (double)m_iDecodedWidth, (double)res_info.iScreenHeight / (double)m_iDecodedHeight);
   int width = (int)((double)m_iDecodedWidth * ratio);
   int height = (int)((double)m_iDecodedHeight * ratio);

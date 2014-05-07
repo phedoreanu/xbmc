@@ -50,10 +50,6 @@
 #endif
 #define CLASSNAME "CDVDVideoCodecMfc6"
 
-#ifndef V4L2_PIX_FMT_NV12MT_16X16
-	#define V4L2_PIX_FMT_NV12MT_16X16  v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
-#endif
-
 CDVDVideoCodecMfc6::CDVDVideoCodecMfc6() : CDVDVideoCodec() {
   m_v4l2MFCOutputBuffers = NULL;
   m_v4l2MFCCaptureBuffers = NULL;
@@ -187,27 +183,27 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
     case CODEC_TYPE_VC1_RCV:
       return V4L2_PIX_FMT_VC1_ANNEX_L;
 */
-    case CODEC_ID_VC1:
+    case AV_CODEC_ID_VC1:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_VC1_ANNEX_G;
       m_name = "mfc-vc1";
       break;
-    case CODEC_ID_MPEG1VIDEO:
+    case AV_CODEC_ID_MPEG1VIDEO:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_MPEG1;
       m_name = "mfc-mpeg1";
       break;
-    case CODEC_ID_MPEG2VIDEO:
+    case AV_CODEC_ID_MPEG2VIDEO:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_MPEG2;
       m_name = "mfc-mpeg2";
       break;
-    case CODEC_ID_MPEG4:
+    case AV_CODEC_ID_MPEG4:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_MPEG4;
       m_name = "mfc-mpeg4";
       break;
-    case CODEC_ID_H263:
+    case AV_CODEC_ID_H263:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H263;
       m_name = "mfc-h263";
       break;
-    case CODEC_ID_H264:
+    case AV_CODEC_ID_H264:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
       m_name = "mfc-h264";
       break;
@@ -494,16 +490,19 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
   	m_videoBuffer.color_range     = 0;
   	m_videoBuffer.color_matrix    = 4;
-  	m_videoBuffer.format          = RENDER_FMT_YUV420P;
+//  	m_videoBuffer.format          = RENDER_FMT_YUV420P;
+	m_videoBuffer.format          = RENDER_FMT_NV12;
   	m_videoBuffer.iDisplayWidth   = m_iVideoWidth;
   	m_videoBuffer.iDisplayHeight  = m_iVideoHeight;
   	m_videoBuffer.iWidth          = m_iVideoWidth;
   	m_videoBuffer.iHeight         = m_iVideoHeight;
   	m_videoBuffer.iLineSize[0]    = m_iVideoWidth;
+	m_videoBuffer.iLineSize[1]    = m_iVideoWidth;
+/*
   	m_videoBuffer.iLineSize[1]    = m_iVideoWidth >> 1;
   	m_videoBuffer.iLineSize[2]    = m_iVideoWidth >> 1;
 
-  	BYTE *s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
+	BYTE *s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
   	BYTE *d = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
   	// Copy Y plane
   	if (m_iOutputWidth == m_iVideoWidth) {
@@ -521,6 +520,9 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
   	m_videoBuffer.data[0]         = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
   	m_videoBuffer.data[1]         = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
   	m_videoBuffer.data[2]         = (BYTE*)m_v4l2OutputBuffer.cPlane[2];
+*/
+	m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
+	m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
   }
 
   // Pop pts/dts only when picture is finally ready to be showed up or skipped

@@ -26,8 +26,12 @@
 #include "EGLNativeTypeAndroid.h"
 #include "EGLNativeTypeAmlogic.h"
 #include "EGLNativeTypeRaspberryPI.h"
+#ifdef HAS_HYBRIS
 #include "EGLNativeTypeHybris.h"
+#endif
+#ifdef HAS_ODROIDGLES
 #include "EGLNativeTypeOdroid.h"
+#endif
 #include "EGLNativeTypeWayland.h"
 #include "EGLWrapper.h"
 
@@ -85,9 +89,14 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
   if ((nativeGuess = CreateEGLNativeType<CEGLNativeTypeWayland>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeOdroid>(implementation)))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation))
+#ifdef HAS_HYBRIS
+      || (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation))
+#endif
+#ifdef HAS_ODROIDGLES
+      || (nativeGuess = CreateEGLNativeType<CEGLNativeTypeOdroid>(implementation))
+#endif
+      )
   {
     m_nativeTypes = nativeGuess;
 

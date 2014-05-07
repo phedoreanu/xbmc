@@ -5,8 +5,12 @@ SRCS+= EGLNativeTypeAmlogic.cpp
 SRCS+= EGLNativeTypeAndroid.cpp
 SRCS+= EGLNativeTypeRaspberryPI.cpp
 SRCS+= EGLNativeTypeWayland.cpp
+ifeq (@USE_HYBRIS@,1)
 SRCS+= EGLNativeTypeHybris.cpp
+endif
+ifeq (@USE_ODROIDGLES@,1)
 SRCS+= EGLNativeTypeOdroid.cpp
+endif
 SRCS+= EGLWrapper.cpp
 
 # Wayland specific detail

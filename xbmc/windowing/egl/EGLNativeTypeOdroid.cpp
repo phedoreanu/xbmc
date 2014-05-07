@@ -17,6 +17,9 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
+
+#include "system.h"
+
 #include <EGL/egl.h>
 #include "EGLNativeTypeOdroid.h"
 #include "utils/log.h"
@@ -27,6 +30,8 @@
 #include <X11/Xutil.h>
 
 #include <unistd.h>
+
+#include "utils/StringUtils.h"
 
 #ifdef CLASSNAME
 #undef CLASSNAME
@@ -43,7 +48,7 @@ CEGLNativeTypeOdroid::~CEGLNativeTypeOdroid()
 
 bool CEGLNativeTypeOdroid::CheckCompatibility()
 {
-#ifdef USE_ODROIDGLES
+#ifdef HAS_ODROIDGLES
     FILE* m_fCPUInfo = fopen("/proc/cpuinfo", "r");
     if (m_fCPUInfo)
     {
@@ -199,7 +204,7 @@ bool CEGLNativeTypeOdroid::GetNativeResolution(RESOLUTION_INFO *res) const
     res->bFullScreen    = true;
     res->iSubtitles     = (int)(0.965 * res->iHeight);
     res->fPixelRatio    = 1.0f;
-    res->strMode.Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate, res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
+    res->strMode       = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate, res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
 
     CLog::Log(LOGNOTICE,"Current resolution: %dx%d\n", window_attr.width, window_attr.height);
     return true;
