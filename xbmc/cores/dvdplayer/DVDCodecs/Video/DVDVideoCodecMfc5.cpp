@@ -212,27 +212,27 @@ bool CDVDVideoCodecMfc5::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
     case CODEC_TYPE_VC1_RCV:
       return V4L2_PIX_FMT_VC1_ANNEX_L;
 */
-    case CODEC_ID_VC1:
+    case AV_CODEC_ID_VC1:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_VC1_ANNEX_G;
       m_name = "mfc-vc1";
       break;
-    case CODEC_ID_MPEG1VIDEO:
+    case AV_CODEC_ID_MPEG1VIDEO:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_MPEG1;
       m_name = "mfc-mpeg1";
       break;
-    case CODEC_ID_MPEG2VIDEO:
+    case AV_CODEC_ID_MPEG2VIDEO:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_MPEG2;
       m_name = "mfc-mpeg2";
       break;
-    case CODEC_ID_MPEG4:
+    case AV_CODEC_ID_MPEG4:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_MPEG4;
       m_name = "mfc-mpeg4";
       break;
-    case CODEC_ID_H263:
+    case AV_CODEC_ID_H263:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H263;
       m_name = "mfc-h263";
       break;
-    case CODEC_ID_H264:
+    case AV_CODEC_ID_H264:
       fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
       m_name = "mfc-h264";
       break;
