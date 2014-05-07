@@ -319,8 +319,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
   m_iVideoHeight = crop.c.height;
 
   m_v4l2OutputBuffer.cPlane[0] = new BYTE[m_iVideoWidth * m_iVideoHeight];
-  m_v4l2OutputBuffer.cPlane[1] = new BYTE[(((m_iVideoWidth * m_iVideoHeight / 4) + 7)&~7)];
-  m_v4l2OutputBuffer.cPlane[2] = new BYTE[(((m_iVideoWidth * m_iVideoHeight / 4) + 7)&~7)];
+  m_v4l2OutputBuffer.cPlane[1] = new BYTE[m_iVideoWidth * (m_iVideoHeight >> 1)];
 
   // Request mfc capture buffers
   m_MFCCaptureBuffersCount = CLinuxV4l2::RequestBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_MFCCaptureBuffersCount);
@@ -420,7 +419,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
     //printf("%s::%s - Frame of size %d, pts = %f, dts = %f", demuxer_bytes, pts, dts);
 
-	// Find buffer ready to be filled
+    // Find buffer ready to be filled
     while (index < m_MFCOutputBuffersCount && m_v4l2MFCOutputBuffers[index].bQueue)
       index++;
 
@@ -442,7 +441,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
         /* FIXME This should be handled as abnormal situation that should be addressed, otherwise decoding will stuck here forever */
         return VC_FLUSHED;
       } else {
-        CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT\e[0m PollOutput error %d, errno %d", CLASSNAME, __func__, ret, errno);
+        CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT PollOutput error %d, errno %d", CLASSNAME, __func__, ret, errno);
         return VC_ERROR;
       }
     }
@@ -490,7 +489,6 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
   	m_videoBuffer.color_range     = 0;
   	m_videoBuffer.color_matrix    = 4;
-//  	m_videoBuffer.format          = RENDER_FMT_YUV420P;
 	m_videoBuffer.format          = RENDER_FMT_NV12;
   	m_videoBuffer.iDisplayWidth   = m_iVideoWidth;
   	m_videoBuffer.iDisplayHeight  = m_iVideoHeight;
@@ -498,31 +496,26 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
   	m_videoBuffer.iHeight         = m_iVideoHeight;
   	m_videoBuffer.iLineSize[0]    = m_iVideoWidth;
 	m_videoBuffer.iLineSize[1]    = m_iVideoWidth;
+
+        // Returning to show MFC buffer directly eliminates a memory copy, but on h.264 videos it leads to the thing, that the buffer going to be shown
+        // and queued back to MFC shortly after here in the code, can be filled with some next frame bt MFC before it will be shown.
+        // So the video would flick with future frames while playing.
+        // FIXME make buffer returned to be queued back only after it is already shown somehow, and eliminate copy of the whole frame in memory
+
+        BYTE *s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
+        BYTE *d = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
+        fast_memcpy(d, s, m_iVideoWidth*m_iVideoHeight);
+        s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
+        d = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
+        fast_memcpy(d, s, m_iVideoWidth*(m_iVideoHeight >> 1));
+
+        m_videoBuffer.data[0]         = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
+        m_videoBuffer.data[1]         = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
 /*
-  	m_videoBuffer.iLineSize[1]    = m_iVideoWidth >> 1;
-  	m_videoBuffer.iLineSize[2]    = m_iVideoWidth >> 1;
-
-	BYTE *s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
-  	BYTE *d = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
-  	// Copy Y plane
-  	if (m_iOutputWidth == m_iVideoWidth) {
-  	  fast_memcpy(d, s, m_iVideoWidth*m_iVideoHeight);
-  	} else {
-  	  for (int y = 0; y < m_iVideoHeight; y++) {
-          fast_memcpy(d, s, m_iVideoWidth);
-  		s += m_iOutputWidth;
-  	    d += m_iVideoWidth;
-  	  }
-  	}
-  	// Deinteleave NV12 UV plane to U and V planes of YUV420
-  	deinterleave_chroma_neon(m_v4l2OutputBuffer.cPlane[1], m_v4l2OutputBuffer.cPlane[2], m_iVideoWidth >> 1, m_v4l2MFCCaptureBuffers[index].cPlane[1], m_iOutputWidth, m_iVideoHeight >> 1);
-
-  	m_videoBuffer.data[0]         = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
-  	m_videoBuffer.data[1]         = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
-  	m_videoBuffer.data[2]         = (BYTE*)m_v4l2OutputBuffer.cPlane[2];
-*/
+        // Direct return of the MFC buffer to show, flickers for h.264
 	m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
 	m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
+*/
   }
 
   // Pop pts/dts only when picture is finally ready to be showed up or skipped
@@ -539,7 +532,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
     m_videoBuffer.dts           = DVD_NOPTS_VALUE;
   }
 
-  // Queue dequeued from FIMC OUPUT frame back to MFC CAPTURE
+  // Queue dequeued buffer back to MFC CAPTURE
   if (&m_v4l2MFCCaptureBuffers[index] && !m_v4l2MFCCaptureBuffers[index].bQueue) {
     int ret = CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_v4l2MFCCaptureBuffers[index].iNumPlanes, index, &m_v4l2MFCCaptureBuffers[index]);
     if (ret < 0) {
