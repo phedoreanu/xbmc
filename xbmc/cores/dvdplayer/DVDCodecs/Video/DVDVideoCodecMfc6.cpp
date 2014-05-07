@@ -522,7 +522,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
   	m_videoBuffer.data[2]         = (BYTE*)m_v4l2OutputBuffer.cPlane[2];
 */
 	m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
-	m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
+	m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
   }
 
   // Pop pts/dts only when picture is finally ready to be showed up or skipped
