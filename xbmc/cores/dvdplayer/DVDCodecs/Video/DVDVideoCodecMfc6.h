@@ -87,6 +87,7 @@ protected:
 
   std::priority_queue<double> m_pts;
   std::priority_queue<double> m_dts;
+  std::queue<int> m_MFCDecodedCaptureBuffers;
 
   bool m_bDropPictures;
 

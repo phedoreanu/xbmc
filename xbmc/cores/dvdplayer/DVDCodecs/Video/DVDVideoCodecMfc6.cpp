@@ -67,7 +67,7 @@ CDVDVideoCodecMfc6::CDVDVideoCodecMfc6() : CDVDVideoCodec() {
   m_iDecoderHandle = -1;
   m_bVideoConvert = false;
   m_bDropPictures = false;
-  
+
   memzero(m_v4l2OutputBuffer);
   memzero(m_videoBuffer);
 }
@@ -173,7 +173,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
       extraData = (uint8_t*)hints.extradata;
     }
   }
-  
+
   // Setup mfc output queue (OUTPUT - name of the queue where TO encoded frames are streamed, CAPTURE - name of the queue where FROM decoded frames are taken)
   // Set mfc output format
   memzero(fmt);
@@ -229,7 +229,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
     return false;
   }
   msg("\e[1;32mMFC OUTPUT\e[0m Setup MFC decoding buffer size=%u (requested=%u)", CLASSNAME, __func__, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, STREAM_BUFFER_SIZE);
-*/  
+*/
   // Request mfc output buffers
   m_MFCOutputBuffersCount = CLinuxV4l2::RequestBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_MMAP, MFC_OUTPUT_BUFFERS_CNT);
   if (m_MFCOutputBuffersCount == V4L2_ERROR) {
@@ -365,7 +365,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
 */
   CLog::Log(LOGNOTICE, "%s::%s - MFC Setup succesfull, start streaming", CLASSNAME, __func__);
   printf("%s::%s - MFC Setup succesfull, start streaming\n", CLASSNAME, __func__);
-  
+
   return true;
 }
 
@@ -470,6 +470,26 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
       CLog::Log(LOGERROR, "%s::%s - Packet to big for streambuffer", CLASSNAME, __func__);
   }
 
+  // Queue _one_ dequeued capture buffer back (the buffer that should be already shown on screen... I hope so. =)
+  // Plus, number of request to dequeue buffers should be equal to number of requests to queue them back in balanced frame flow,
+  // or decoding would stuck with dequeued buffers, and MFC has no buffers to write to
+  if (!m_MFCDecodedCaptureBuffers.empty()) {
+    int index = m_MFCDecodedCaptureBuffers.front();
+    // printf("\e[1;32mMFC CAPTURE\e[0m going to queue %d, m_v4l2MFCCaptureBuffers[index] is %d, m_v4l2MFCCaptureBuffers[index].bQueue is %d\n", index, &m_v4l2MFCCaptureBuffers[index], m_v4l2MFCCaptureBuffers[index].bQueue);
+    if (&m_v4l2MFCCaptureBuffers[index] && !m_v4l2MFCCaptureBuffers[index].bQueue) {
+      int ret = CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_v4l2MFCCaptureBuffers[index].iNumPlanes, index, &m_v4l2MFCCaptureBuffers[index]);
+      if (ret < 0) {
+        CLog::Log(LOGERROR, "%s::%s - queue output buffer\n", CLASSNAME, __func__);
+        m_videoBuffer.iFlags      |= DVP_FLAG_DROPPED;
+        m_videoBuffer.iFlags      &= DVP_FLAG_ALLOCATED;
+        return VC_ERROR;
+      }
+      m_MFCDecodedCaptureBuffers.pop();
+      m_v4l2MFCCaptureBuffers[index].bQueue = true;
+      // printf("\e[1;32mMFC CAPTURE\e[0m queued %d\n", index);
+    }
+  }
+
   // Dequeue decoded frame
   index = CLinuxV4l2::DequeueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, V4L2_NUM_MAX_PLANES);
   if (index < 0) {
@@ -478,8 +498,12 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
     CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE error dequeue output buffer, got number %d, errno %d", CLASSNAME, __func__, ret, errno);
     return VC_ERROR;
   }
-  //printf("\e[1;32mMFC CAPTURE\e[0m -> %d", index);
   m_v4l2MFCCaptureBuffers[index].bQueue = false;
+  // printf("\e[1;32mMFC CAPTURE\e[0m dequeued %d\n", index);
+
+  // Put the buffer index to the queue of dequeued buffers
+  m_MFCDecodedCaptureBuffers.push(index);
+  // printf("\e[1;32mMFC CAPTURE\e[0m pushed to dequeued index %d\n", index);
 
   if (m_bDropPictures) {
     m_videoBuffer.iFlags      |= DVP_FLAG_DROPPED;
@@ -489,33 +513,29 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
   	m_videoBuffer.color_range     = 0;
   	m_videoBuffer.color_matrix    = 4;
-	m_videoBuffer.format          = RENDER_FMT_NV12;
+	  m_videoBuffer.format          = RENDER_FMT_NV12;
   	m_videoBuffer.iDisplayWidth   = m_iVideoWidth;
   	m_videoBuffer.iDisplayHeight  = m_iVideoHeight;
   	m_videoBuffer.iWidth          = m_iVideoWidth;
   	m_videoBuffer.iHeight         = m_iVideoHeight;
   	m_videoBuffer.iLineSize[0]    = m_iVideoWidth;
-	m_videoBuffer.iLineSize[1]    = m_iVideoWidth;
+	  m_videoBuffer.iLineSize[1]    = m_iVideoWidth;
 
-        // Returning to show MFC buffer directly eliminates a memory copy, but on h.264 videos it leads to the thing, that the buffer going to be shown
-        // and queued back to MFC shortly after here in the code, can be filled with some next frame bt MFC before it will be shown.
-        // So the video would flick with future frames while playing.
-        // FIXME make buffer returned to be queued back only after it is already shown somehow, and eliminate copy of the whole frame in memory
-
-        BYTE *s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
-        BYTE *d = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
-        fast_memcpy(d, s, m_iVideoWidth*m_iVideoHeight);
-        s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
-        d = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
-        fast_memcpy(d, s, m_iVideoWidth*(m_iVideoHeight >> 1));
-
-        m_videoBuffer.data[0]         = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
-        m_videoBuffer.data[1]         = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
 /*
-        // Direct return of the MFC buffer to show, flickers for h.264
-	m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
-	m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
+    BYTE *s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
+    BYTE *d = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
+    fast_memcpy(d, s, m_iVideoWidth*m_iVideoHeight);
+    s = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
+    d = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
+    fast_memcpy(d, s, m_iVideoWidth*(m_iVideoHeight >> 1));
+
+    m_videoBuffer.data[0]         = (BYTE*)m_v4l2OutputBuffer.cPlane[0];
+    m_videoBuffer.data[1]         = (BYTE*)m_v4l2OutputBuffer.cPlane[1];
 */
+    // Direct return of the MFC buffer to show, no memory copy. Could be a little fishy in a racing conditions
+    m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
+    m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
+
   }
 
   // Pop pts/dts only when picture is finally ready to be showed up or skipped
@@ -523,7 +543,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
     m_videoBuffer.pts = -m_pts.top(); // MFC always return frames in order and assigning them their pts'es from the input
                                       // will lead to reshuffle. This will assign least pts in the queue to the frame dequeued.
     m_videoBuffer.dts = -m_dts.top();
-    
+
     m_pts.pop();
     m_dts.pop();
   } else {
@@ -531,7 +551,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
     m_videoBuffer.pts           = DVD_NOPTS_VALUE;
     m_videoBuffer.dts           = DVD_NOPTS_VALUE;
   }
-
+/*
   // Queue dequeued buffer back to MFC CAPTURE
   if (&m_v4l2MFCCaptureBuffers[index] && !m_v4l2MFCCaptureBuffers[index].bQueue) {
     int ret = CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_v4l2MFCCaptureBuffers[index].iNumPlanes, index, &m_v4l2MFCCaptureBuffers[index]);
@@ -544,9 +564,10 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
     m_v4l2MFCCaptureBuffers[index].bQueue = true;
     //printf("\e[1;32mMFC CAPTURE\e[0m <- %d", ret);
   }
+*/
 
-//  msg("Decode time: %d", XbmcThreads::SystemClockMillis() - dtime);
-  
+  // msg("Decode time: %d", XbmcThreads::SystemClockMillis() - dtime);
+
   return VC_PICTURE; // Picture is finally ready to be processed further
 }
 
