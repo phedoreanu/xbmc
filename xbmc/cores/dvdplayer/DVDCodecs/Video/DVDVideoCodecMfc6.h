@@ -29,7 +29,7 @@
 #include <list>
 #include "guilib/GraphicContext.h"
 
-#define STREAM_BUFFER_SIZE            786432 //compressed frame size. 1080p mpeg4 10Mb/s can be un to 786k in size, so this is to make sure frame fits into buffer
+#define STREAM_BUFFER_SIZE            1048576 //compressed frame size. 1080p mpeg4 10Mb/s can be un to 786k in size, so this is to make sure frame fits into buffer
 #define MFC_OUTPUT_BUFFERS_CNT        2 //1 doesn't work at all
 #define MFC_CAPTURE_EXTRA_BUFFER_CNT  3 //these are extra buffers, better keep their count as big as going to be simultaneous dequeued buffers number
 
