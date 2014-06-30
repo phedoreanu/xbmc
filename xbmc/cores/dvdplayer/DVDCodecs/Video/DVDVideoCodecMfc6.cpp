@@ -213,7 +213,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
   }
   fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
   fmt.fmt.pix_mp.plane_fmt[0].sizeimage = STREAM_BUFFER_SIZE;
-  fmt.fmt.pix_mp.num_planes = V4L2_NUM_MAX_PLANES;
+  fmt.fmt.pix_mp.num_planes = 1; //Only 1 plane in encoded frames
   ret = ioctl(m_iDecoderHandle, VIDIOC_S_FMT, &fmt);
   if (ret != 0) {
     CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT S_FMT failed", CLASSNAME, __func__);
@@ -249,6 +249,10 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
     return false;
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT Succesfully mmapped %d buffers", CLASSNAME, __func__, m_MFCOutputBuffersCount);
+
+  for (int n = 0; n < m_MFCOutputBuffersCount; n++) {
+    m_v4l2MFCOutputBuffers[n].iNumPlanes = 1; //we have only 1 plane in encoded frames
+  }
 
   // Prepare header
   m_v4l2MFCOutputBuffers[0].iBytesUsed[0] = extraSize;
