@@ -308,7 +308,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
     CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE Failed to get the number of buffers required", CLASSNAME, __func__);
     return false;
   }
-  m_MFCCaptureBuffersCount = ctrl.value + MFC_CAPTURE_EXTRA_BUFFER_CNT;
+  m_MFCCaptureBuffersCount = (int)(ctrl.value * 1.5); //We need 50% more extra capture buffers for cozy decoding
 
   // Get mfc capture crop
   memzero(crop);
@@ -331,7 +331,7 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
     CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE REQBUFS failed", CLASSNAME, __func__);
     return false;
   }
-  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE REQBUFS Number of buffers is %d (extra %d)", CLASSNAME, __func__, m_MFCCaptureBuffersCount, MFC_CAPTURE_EXTRA_BUFFER_CNT);
+  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE REQBUFS Number of buffers is %d", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
 
   // Allocate, Memory Map and queue mfc capture buffers
   m_v4l2MFCCaptureBuffers = (V4L2Buffer *)calloc(m_MFCCaptureBuffersCount, sizeof(V4L2Buffer));
@@ -428,7 +428,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
       index++;
 
     if (index >= m_MFCOutputBuffersCount) { //all input buffers are busy, dequeue needed
-      ret = CLinuxV4l2::PollOutput(m_iDecoderHandle, 1000); // POLLIN - Capture, POLLOUT - Output
+      ret = CLinuxV4l2::PollOutput(m_iDecoderHandle, 1000/20); // 20 fps gap wait time. POLLIN - Capture, POLLOUT - Output
       if (ret == V4L2_ERROR) {
         CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT PollOutput Error", CLASSNAME, __func__);
         return VC_ERROR;
@@ -442,8 +442,10 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
         m_v4l2MFCOutputBuffers[index].bQueue = false;
       } else if (ret == V4L2_BUSY) { // buffer is still busy
         CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT All buffers are queued and busy, no space for new frame to decode. Very broken situation.", CLASSNAME, __func__);
-        /* FIXME This should be handled as abnormal situation that should be addressed, otherwise decoding will stuck here forever */
-        return VC_FLUSHED;
+        return VC_PICTURE; // MFC is so busy it cannot accept more input frames, call ::Decode with pData = NULL to request a picture dequeue
+                           // FIXME
+                           // This will actually cause the current encoded frame to be lost in void, so this has to be fully reworked to queues storing all frames coming in
+                           // In current realization the picture will distort in this case scenarios
       } else {
         CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT PollOutput error %d, errno %d", CLASSNAME, __func__, ret, errno);
         return VC_ERROR;
@@ -572,7 +574,7 @@ int CDVDVideoCodecMfc6::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
   // msg("Decode time: %d", XbmcThreads::SystemClockMillis() - dtime);
 
-  return VC_PICTURE; // Picture is finally ready to be processed further
+  return VC_PICTURE | VC_BUFFER; // Picture is finally ready to be processed further and more info can be enqueued
 }
 
 void CDVDVideoCodecMfc6::Reset() {
