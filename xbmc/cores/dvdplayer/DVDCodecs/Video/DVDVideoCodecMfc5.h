@@ -34,7 +34,6 @@
                                               //and leads to stream hangs on heavy frames
 #define FIMC_CAPTURE_BUFFERS_CNT      3 //2 begins to be slow.
 #define MFC_OUTPUT_BUFFERS_CNT        2 //1 doesn't work at all
-#define MFC_CAPTURE_EXTRA_BUFFER_CNT  3 //these are extra buffers, better keep their count as big as going to be simultaneous dequeued buffers number
 
 #ifndef V4L2_CAP_VIDEO_M2M_MPLANE
   #define V4L2_CAP_VIDEO_M2M_MPLANE       0x00004000
