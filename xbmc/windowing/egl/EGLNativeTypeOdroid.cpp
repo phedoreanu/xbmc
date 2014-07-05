@@ -63,7 +63,7 @@ bool CEGLNativeTypeOdroid::CheckCompatibility()
           {
             needle+=2;
             if (strncmp(needle, "ODROID", strlen("ODROID"))==0) {
-                printf("%s::%s using odroid EGL\n", CLASSNAME, __func__);
+//                printf("%s::%s using odroid EGL\n", CLASSNAME, __func__);
                 return true;
             }
           }

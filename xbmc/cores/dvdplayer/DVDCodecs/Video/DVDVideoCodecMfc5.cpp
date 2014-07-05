@@ -502,7 +502,7 @@ bool CDVDVideoCodecMfc5::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
   CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT -> %d header", CLASSNAME, __func__, ret);
 
   CLog::Log(LOGNOTICE, "%s::%s - MFC Setup succesfull, start streaming", CLASSNAME, __func__);
-  printf("%s::%s - MFC Setup succesfull, start streaming\n", CLASSNAME, __func__);
+//  printf("%s::%s - MFC Setup succesfull, start streaming\n", CLASSNAME, __func__);
   
   return true;
 }
