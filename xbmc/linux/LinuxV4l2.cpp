@@ -119,8 +119,6 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
     buffer->iNumPlanes = 0;
     for (j = 0; j < V4L2_NUM_MAX_PLANES; j++) 
     {
-      //printf("%s::%s - plane %d %d size %d 0x%08x\n", CLASSNAME, __func__, i, j, buf.m.planes[j].length,
-      //    buf.m.planes[j].m.userptr);
       buffer->iSize[j]       = buf.m.planes[j].length;
       buffer->iBytesUsed[j]  = buf.m.planes[j].bytesused;
       if(buffer->iSize[j])
@@ -177,7 +175,7 @@ V4L2Buffer *CLinuxV4l2::FreeBuffers(int count, V4L2Buffer *v4l2Buffers)
   return NULL;
 }
 
-int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int planes)
+int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int planes, double *dequeuedTimestamp)
 {
   struct v4l2_buffer vbuf;
   struct v4l2_plane  vplanes[V4L2_NUM_MAX_PLANES];
@@ -199,7 +197,14 @@ int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_mem
       CLog::Log(LOGERROR, "%s::%s - Dequeue buffer", CLASSNAME, __func__);
     return V4L2_ERROR;
   }
-  
+
+  if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+    // Unbox two 32-bit integers from struct timeval received from MFC back into one 64-bit double expected by XBMC as pts
+    // WARNING: It will work only if double is 64-bit and long is 32.
+    // Since MFC is IP available only in Samsung Exynos ARM's and the code is for V4L2 for linux it should work.
+    long pts[2] = { vbuf.timestamp.tv_sec, vbuf.timestamp.tv_usec };
+    *dequeuedTimestamp = *((double*)&pts[0]);;
+  }
   return vbuf.index;
 }
 
@@ -220,6 +225,17 @@ int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type,
   vbuf.index    = index;
   vbuf.m.planes = vplanes;
   vbuf.length   = buffer->iNumPlanes;
+  if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+    vbuf.flags |= V4L2_BUF_FLAG_TIMESTAMP_COPY;
+    // This will box 64-bit double given as pts from XBMC into two 32-bit integers available in struct timeval which MFC expects.
+    // WARNING: This values has nothing to do with real timestamp of the frame, it is just two 32-bit halves of 64-bit double
+    // and must be unboxed back the same way on deqeue. It will work only if double is 64-bit and long is 32.
+    // Since MFC is IP available only in Samsung Exynos ARM's, and the code is for V4L2 for linux it should work.
+    // The values will be just copied by driver from input frame to output frame and will not affect decoding in any way
+    long* pts = (long*)&buffer->timestamp;
+    vbuf.timestamp.tv_sec = pts[0];
+    vbuf.timestamp.tv_usec = pts[1];
+  }
 
   for (int i = 0; i < buffer->iNumPlanes; i++) 
   {

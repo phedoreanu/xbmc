@@ -21,6 +21,7 @@
  */
 
 #include "DVDVideoCodec.h"
+#include "DVDStreamInfo.h"
 #include "DVDResource.h"
 #include "utils/BitstreamConverter.h"
 #include "xbmc/linux/LinuxV4l2.h"
@@ -85,9 +86,8 @@ protected:
   bool m_bVideoConvert;
 
   CBitstreamConverter m_converter;
+  CDVDStreamInfo  m_hints;
 
-  std::priority_queue<double> m_pts;
-  std::priority_queue<double> m_dts;
   std::queue<int> m_MFCDecodedCaptureBuffers;
 
   bool m_bDropPictures;

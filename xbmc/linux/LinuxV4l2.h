@@ -42,6 +42,7 @@ typedef struct V4L2Buffer
   int   iNumPlanes;
   int   iIndex;
   bool  bQueue;
+  double timestamp;
 } V4L2Buffer;
 
 #ifdef __cplusplus
@@ -59,7 +60,7 @@ public:
   static bool MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enum v4l2_buf_type type, enum v4l2_memory memory, bool queue = true);
   static V4L2Buffer *FreeBuffers(int count, V4L2Buffer *v4l2Buffers);
 
-  static int DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int planes);
+  static int DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int planes, double *dequeuedTimestamp);
   static int QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, 
       int planes, int index, V4L2Buffer *buffer);
 
