@@ -38,11 +38,8 @@ ifeq (@USE_LIBSTAGEFRIGHT@,1)
 SRCS += DVDVideoCodecStageFright.cpp
 endif
 
-ifeq (@USE_MFC5@,1)
-SRCS += DVDVideoCodecMfc5.cpp
-endif
-ifeq (@USE_MFC6@,1)
-SRCS += DVDVideoCodecMfc6.cpp
+ifeq (@USE_MFC@,1)
+SRCS += DVDVideoCodecMFC.cpp
 endif
 
 LIB=Video.a

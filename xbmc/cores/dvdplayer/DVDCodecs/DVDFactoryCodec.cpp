@@ -56,11 +56,8 @@
 #include "Overlay/DVDOverlayCodecText.h"
 #include "Overlay/DVDOverlayCodecTX3G.h"
 #include "Overlay/DVDOverlayCodecFFmpeg.h"
-#if defined(HAS_MFC5)
-#include "Video/DVDVideoCodecMfc5.h"
-#endif
-#if defined(HAS_MFC6)
-#include "Video/DVDVideoCodecMfc6.h"
+#if defined(HAS_MFC)
+#include "Video/DVDVideoCodecMFC.h"
 #endif
 
 #include "DVDStreamInfo.h"
@@ -196,31 +193,18 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, unsigne
 #elif defined(TARGET_POSIX) && !defined(TARGET_DARWIN)
   hwSupport += "VAAPI:no ";
 #endif
-#if defined(HAS_MFC5) && defined(_LINUX)
-  hwSupport += "MFCv5:yes ";
+#if defined(HAS_MFC) && defined(_LINUX)
+  hwSupport += "MFC:yes ";
 #elif defined(_LINUX)
-  hwSupport += "MFCv5:no ";
-#endif
-#if defined(HAS_MFC6) && defined(_LINUX)
-  hwSupport += "MFCv6:yes ";
-#elif defined(_LINUX)
-  hwSupport += "MFCv6:no ";
+  hwSupport += "MFC:no ";
 #endif
 
   CLog::Log(LOGDEBUG, "CDVDFactoryCodec: compiled in hardware support: %s", hwSupport.c_str());
 
-#if defined(HAS_MFC5) && defined(_LINUX)
+#if defined(HAS_MFC)
   if ( !hint.software ) {
     if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_MPEG2VIDEO || AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_VC1 ) {
-      if( (pCodec = OpenCodec(new CDVDVideoCodecMfc5(), hint, options)) ) return pCodec;
-    }
-  }
-#endif
-
-#if defined(HAS_MFC6) && defined(_LINUX)
-  if ( !hint.software ) {
-    if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_MPEG2VIDEO || AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_VC1 ) {
-      if( (pCodec = OpenCodec(new CDVDVideoCodecMfc6(), hint, options)) ) return pCodec;
+      if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
     }
   }
 #endif

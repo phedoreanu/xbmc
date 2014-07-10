@@ -117,6 +117,7 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
     V4L2Buffer *buffer = &v4l2Buffers[i];
 
     buffer->iNumPlanes = 0;
+    buffer->bQueue = false;
     for (j = 0; j < V4L2_NUM_MAX_PLANES; j++) 
     {
       buffer->iSize[j]       = buf.m.planes[j].length;
@@ -137,15 +138,7 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
     buffer->iIndex = i;
 
     if(queue)
-    {
-      ret = ioctl(device, VIDIOC_QBUF, &buf);
-      if (ret)
-      {
-        CLog::Log(LOGERROR, "%s::%s - Queue buffer", CLASSNAME, __func__);
-        return false;
-      }
-      buffer->bQueue = true;
-    }
+      QueueBuffer(device, type, memory, V4L2_NUM_MAX_PLANES, i, buffer);
   }
 
   return true;

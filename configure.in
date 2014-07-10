@@ -189,10 +189,8 @@ libcec_enabled="== libcec enabled. =="
 libcec_disabled="== libcec disabled. CEC adapter support will not be available. =="
 
 # Odroid stuff
-mfc5_enabled="== MFC5 enabled. =="
-mfc5_disabled="== MFC5 disabled. =="
-mfc6_enabled="== MFC6 enabled. =="
-mfc6_disabled="== MFC6 disabled. =="
+mfc_enabled="== MFC enabled. =="
+mfc_disabled="== MFC disabled. =="
 hybris_enabled="== Libhybris enabled. =="
 hybris_disabled="== Libhybris disabled. =="
 odroidgles_enabled="== Odroid GLES enabled. =="
@@ -586,17 +584,11 @@ AC_ARG_ENABLE([libav-compat],
   [use_libav_hacks=$enableval],
   [use_libav_hacks=no])
 
-AC_ARG_ENABLE([mfc5],
-  [AS_HELP_STRING([--enable-mfc5],
-  [enable use of MFC5 hardware decoder (default is no) 'Linux only'])],
-  [use_mfc5=$enableval],
-  [use_mfc5=no])
-
-AC_ARG_ENABLE([mfc6],
-  [AS_HELP_STRING([--enable-mfc6],
-  [enable use of MFC6 hardware decoder (default is no) 'Linux only'])],
-  [use_mfc6=$enableval],
-  [use_mfc6=no])
+AC_ARG_ENABLE([mfc],
+  [AS_HELP_STRING([--enable-mfc],
+  [enable use of MFC hardware decoder (default is no) 'Linux only'])],
+  [use_mfc=$enableval],
+  [use_mfc=no])
 
 AC_ARG_ENABLE([hybris],
   [AS_HELP_STRING([--enable-hybris],
@@ -789,7 +781,7 @@ case $use_platform in
      use_neon=yes
      use_cpu=cortex-a9
      use_odroidgles=yes
-     use_mfc5=yes
+     use_mfc=yes
      ARCH="arm"
      CFLAGS="$CFLAGS"
      CXXFLAGS="$CXXFLAGS"
@@ -800,7 +792,7 @@ case $use_platform in
      use_neon=yes
      use_cpu=cortex-a15
      use_hybris=yes
-     use_mfc6=yes
+     use_mfc=yes
      ARCH="arm"
      CFLAGS="$CFLAGS"
      CXXFLAGS="$CXXFLAGS"
@@ -1828,14 +1820,9 @@ fi
 
 # Odroid
 
-if test "x$use_mfc5" != "xno"; then
-  USE_MFC5=1;
-  AC_DEFINE(HAS_MFC5, [1], [Define if MFC5 hardware decoder is present])
-fi
-
-if test "x$use_mfc6" != "xno"; then
-  USE_MFC6=1;
-  AC_DEFINE(HAS_MFC6, [1], [Define if MFC6 hardware decoder is present])
+if test "x$use_mfc" != "xno"; then
+  USE_MFC=1;
+  AC_DEFINE(HAS_MFC, [1], [Define if MFC hardware decoder is present])
 fi
 
 if test "x$use_hybris" != "xno"; then
@@ -2586,16 +2573,10 @@ else
   final_message="$final_message\n  Odroid GLES support:\tNo"
 fi
 
-if test "x$use_mfc5" != "xno"; then
-  final_message="$final_message\n  MFC5 support:\tYes"
+if test "x$use_mfc" != "xno"; then
+  final_message="$final_message\n  MFC support:\tYes"
 else
-  final_message="$final_message\n  MFC5 support:\tNo"
-fi
-
-if test "x$use_mfc6" != "xno"; then
-  final_message="$final_message\n  MFC6 support:\tYes"
-else
-  final_message="$final_message\n  MFC6 support:\tNo"
+  final_message="$final_message\n  MFC support:\tNo"
 fi
 
 ### External libraries messages
@@ -2797,8 +2778,7 @@ AC_SUBST(HOGWEED_ALL_LIBS)
 AC_SUBST(VORBISENC_ALL_LIBS)
 AC_SUBST(USE_HYBRIS)
 AC_SUBST(USE_ODROIDGLES)
-AC_SUBST(USE_MFC5)
-AC_SUBST(USE_MFC6)
+AC_SUBST(USE_MFC)
 
 # pushd and popd are not available in other shells besides bash, so implement
 # our own pushd/popd functions
