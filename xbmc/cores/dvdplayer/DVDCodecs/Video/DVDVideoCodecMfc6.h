@@ -68,8 +68,6 @@ protected:
   std::string m_name;
   unsigned int m_iVideoWidth;
   unsigned int m_iVideoHeight;
-  unsigned int m_iOutputWidth;
-  unsigned int m_iOutputHeight;
   int m_iDecoderHandle;
 
   int m_MFCOutputBuffersCount;

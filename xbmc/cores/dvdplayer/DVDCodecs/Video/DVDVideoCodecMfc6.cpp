@@ -62,8 +62,6 @@ CDVDVideoCodecMfc6::CDVDVideoCodecMfc6() : CDVDVideoCodec() {
 
   m_iVideoWidth = 0;
   m_iVideoHeight = 0;
-  m_iOutputWidth = 0;
-  m_iOutputHeight = 0;
   m_iDecoderHandle = -1;
   m_bVideoConvert = false;
   m_bDropPictures = false;
@@ -287,8 +285,6 @@ bool CDVDVideoCodecMfc6::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) 
   }
   m_iMFCCapturePlane1Size = fmt.fmt.pix_mp.plane_fmt[0].sizeimage;
   m_iMFCCapturePlane2Size = fmt.fmt.pix_mp.plane_fmt[1].sizeimage;
-  m_iOutputWidth = (fmt.fmt.pix_mp.width + 15)&~15; // Align width by 16, picture returned by MFC is always aligned by 16, but parameters are wrongly returned same as video size.
-  m_iOutputHeight = fmt.fmt.pix_mp.height;
   CLog::Log(LOGNOTICE, "%s::%s - MFC CAPTURE G_FMT: fmt 0x%x (%dx%d), plane[0]=%d plane[1]=%d plane[2]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, m_iMFCCapturePlane1Size, m_iMFCCapturePlane2Size, fmt.fmt.pix_mp.plane_fmt[2].sizeimage);
 
   // Get mfc needed number of buffers
@@ -369,8 +365,6 @@ void CDVDVideoCodecMfc6::Dispose() {
 
   m_iVideoWidth = 0;
   m_iVideoHeight = 0;
-  m_iOutputWidth = 0;
-  m_iOutputHeight = 0;
   m_iDecoderHandle = -1;
   m_bVideoConvert = false;
   m_bDropPictures = false;
