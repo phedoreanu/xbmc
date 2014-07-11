@@ -174,6 +174,10 @@ void CDVDVideoCodecMFC::Dispose() {
     m_v4l2MFCCaptureBuffers = CLinuxV4l2::FreeBuffers(m_MFCCaptureBuffersCount, m_v4l2MFCCaptureBuffers);
   if (m_v4l2FIMCCaptureBuffers)
     m_v4l2FIMCCaptureBuffers = CLinuxV4l2::FreeBuffers(m_FIMCCaptureBuffersCount, m_v4l2FIMCCaptureBuffers);
+  m_v4l2MFCOutputBuffers = NULL;
+  m_v4l2MFCCaptureBuffers = NULL;
+  m_v4l2FIMCCaptureBuffers = NULL;
+
   CLog::Log(LOGDEBUG, "%s::%s - Closing devices", CLASSNAME, __func__);
   if (m_iDecoderHandle >= 0) {
     if (CLinuxV4l2::StreamOn(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, VIDIOC_STREAMOFF))
@@ -560,7 +564,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
           CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT error dequeue output buffer, got number %d, errno %d", CLASSNAME, __func__, index, errno);
           return VC_ERROR;
         }
-        CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT -> %d", CLASSNAME, __func__, index);
+        //CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT -> %d", CLASSNAME, __func__, index);
         m_v4l2MFCOutputBuffers[index].bQueue = false;
       } else if (ret == V4L2_BUSY) { // buffer is still busy
         CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT All buffers are queued and busy, no space for new frame to decode. Very broken situation.", CLASSNAME, __func__);
@@ -629,7 +633,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
   }
   m_v4l2MFCCaptureBuffers[index].bQueue = false;
   m_v4l2MFCCaptureBuffers[index].timestamp = dequeuedTimestamp;
-  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE -> %d", CLASSNAME, __func__, index);
+  //CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE -> %d", CLASSNAME, __func__, index);
 
   if (m_bDropPictures) {
     CLog::Log(LOGDEBUG, "%s::%s - Dropping frame with index %d", CLASSNAME, __func__, index);
@@ -672,7 +676,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
           CLog::Log(LOGERROR, "%s::%s - FIMC OUTPUT error dequeue output buffer, got number %d", CLASSNAME, __func__, index);
           return VC_ERROR;
         }
-        CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT -> %d", CLASSNAME, __func__, index);
+        //CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT -> %d", CLASSNAME, __func__, index);
         // Queue it back to MFC CAPTURE
         if (CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_v4l2MFCCaptureBuffers[index].iNumPlanes, index, &m_v4l2MFCCaptureBuffers[index]) < 0) {
           CLog::Log(LOGERROR, "%s::%s - MFC queue CAPTURE buffer", CLASSNAME, __func__);
@@ -694,7 +698,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
         CLog::Log(LOGERROR, "%s::%s - FIMC CAPTURE error dequeue output buffer, got number %d, errno %d", CLASSNAME, __func__, index, errno);
         return VC_ERROR;
       }
-      CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE -> %d", CLASSNAME, __func__, index);
+      //CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE -> %d", CLASSNAME, __func__, index);
 
       m_v4l2FIMCCaptureBuffers[index].bQueue = false;
       m_v4l2FIMCCaptureBuffers[index].timestamp = dequeuedTimestamp;
