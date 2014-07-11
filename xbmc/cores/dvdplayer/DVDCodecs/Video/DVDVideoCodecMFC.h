@@ -34,7 +34,8 @@
                                               //if set to lower values it corrupts adjacent value in the setup data structure for h264 streams
                                               //and leads to stream hangs on heavy frames
 #define FIMC_CAPTURE_BUFFERS_CNT      3 //2 begins to be slow.
-#define MFC_OUTPUT_BUFFERS_CNT        2 //1 doesn't work at all
+#define MFC_OUTPUT_BUFFERS_CNT        3 //1 doesn't work at all, 2 is enough most of the times, but in a rare case of interlaced video two buffers
+                                        //must be queued all the time to get fill picture from interlaced frames, so let's have them 3
 
 #ifndef V4L2_CAP_VIDEO_M2M_MPLANE
   #define V4L2_CAP_VIDEO_M2M_MPLANE       0x00004000
@@ -72,7 +73,6 @@ protected:
 
   int m_MFCOutputBuffersCount;
   int m_MFCCaptureBuffersCount;
-  int m_FIMCOutputBuffersCount;
   int m_FIMCCaptureBuffersCount;
 
   V4L2Buffer *m_v4l2MFCOutputBuffers;
