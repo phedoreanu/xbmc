@@ -715,7 +715,6 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       m_videoBuffer.pts             = m_v4l2MFCCaptureBuffers[index].timestamp;
     }
     m_iDequeuedToPresentBufferNumber = index;
-    CLog::Log(LOGDEBUG, "%s::%s - output frame pts %lf", CLASSNAME, __func__, pts);
   }
 
   //msg("Decode time: %d", XbmcThreads::SystemClockMillis() - dtime);
@@ -737,6 +736,7 @@ bool CDVDVideoCodecMFC::GetPicture(DVDVideoPicture* pDvdVideoPicture) {
 
   CLog::Log(LOGDEBUG, "%s::%s - GetPicture", CLASSNAME, __func__);
   *pDvdVideoPicture = m_videoBuffer;
+  CLog::Log(LOGDEBUG, "%s::%s - output frame pts %lf", CLASSNAME, __func__, m_videoBuffer.pts);
   return true;
 
 }
