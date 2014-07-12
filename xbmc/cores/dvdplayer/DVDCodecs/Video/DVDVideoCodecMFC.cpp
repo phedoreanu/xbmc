@@ -644,15 +644,9 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
   m_v4l2MFCCaptureBuffers[index].timestamp = dequeuedTimestamp;
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE -> %d", CLASSNAME, __func__, index);
 
-  if (m_bDropPictures) {
+  if (m_bDropPictures)
     CLog::Log(LOGDEBUG, "%s::%s - Dropping frame with index %d", CLASSNAME, __func__, index);
-    // Queue it back to MFC CAPTURE since the picture is dropped anyway
-    ret = CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_v4l2MFCCaptureBuffers[index].iNumPlanes, index, &m_v4l2MFCCaptureBuffers[index]);
-    if (ret < 0) {
-      CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE Failed to queue buffer with index %d, errno %d", CLASSNAME, __func__, index, errno);
-      return VC_FLUSHED;
-    }
-  } else {
+  else {
     if (m_iConverterHandle >= 0) {
       ret = CLinuxV4l2::QueueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_USERPTR, m_v4l2MFCCaptureBuffers[index].iNumPlanes, index, &m_v4l2MFCCaptureBuffers[index]);
       if (ret == V4L2_ERROR) {
@@ -719,8 +713,9 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
       m_videoBuffer.pts             = m_v4l2MFCCaptureBuffers[index].timestamp;
     }
-    m_iDequeuedToPresentBufferNumber = index;
   }
+
+  m_iDequeuedToPresentBufferNumber = index;
 
   //msg("Decode time: %d", XbmcThreads::SystemClockMillis() - dtime);
   CLog::Log(LOGDEBUG, "%s::%s - output frame pts %lf", CLASSNAME, __func__, pts);
