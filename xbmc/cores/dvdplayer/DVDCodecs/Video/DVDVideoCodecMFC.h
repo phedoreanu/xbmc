@@ -71,7 +71,6 @@ protected:
   bool m_bDropPictures;
 
   DVDVideoPicture   m_videoBuffer;
-  bool m_bFIMCStartConverter;
 
   bool OpenDevices();
 };
