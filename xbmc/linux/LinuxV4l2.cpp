@@ -40,7 +40,7 @@
 #endif
 #define CLASSNAME "CLinuxV4l2"
 
-CLinuxV4l2::CLinuxV4l2() 
+CLinuxV4l2::CLinuxV4l2()
 {
 }
 
@@ -118,7 +118,7 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
 
     buffer->iNumPlanes = 0;
     buffer->bQueue = false;
-    for (j = 0; j < V4L2_NUM_MAX_PLANES; j++) 
+    for (j = 0; j < buf.length; j++)
     {
       buffer->iSize[j]       = buf.m.planes[j].length;
       buffer->iBytesUsed[j]  = buf.m.planes[j].bytesused;
@@ -138,7 +138,7 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
     buffer->iIndex = i;
 
     if(queue)
-      QueueBuffer(device, type, memory, V4L2_NUM_MAX_PLANES, i, buffer);
+      QueueBuffer(device, type, memory, buffer);
   }
 
   return true;
@@ -168,7 +168,7 @@ V4L2Buffer *CLinuxV4l2::FreeBuffers(int count, V4L2Buffer *v4l2Buffers)
   return NULL;
 }
 
-int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int planes, double *dequeuedTimestamp)
+int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, double *dequeuedTimestamp)
 {
   struct v4l2_buffer vbuf;
   struct v4l2_plane  vplanes[V4L2_NUM_MAX_PLANES];
@@ -182,7 +182,7 @@ int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_mem
   vbuf.type     = type;
   vbuf.memory   = memory;
   vbuf.m.planes = vplanes;
-  vbuf.length   = planes;
+  vbuf.length   = V4L2_NUM_MAX_PLANES;
 
   ret = ioctl(device, VIDIOC_DQBUF, &vbuf);
   if (ret) {
@@ -201,21 +201,20 @@ int CLinuxV4l2::DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_mem
   return vbuf.index;
 }
 
-int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type, 
-    enum v4l2_memory memory, int planes, int index, V4L2Buffer *buffer)
+int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, V4L2Buffer *buffer)
 {
   struct v4l2_buffer vbuf;
-  struct v4l2_plane  vplanes[V4L2_NUM_MAX_PLANES];
+  struct v4l2_plane  vplanes[buffer->iNumPlanes];
   int ret = 0;
 
   if(!buffer || device <0)
     return V4L2_ERROR;
 
-  memset(&vplanes, 0, sizeof(struct v4l2_plane) * V4L2_NUM_MAX_PLANES);
+  memset(&vplanes, 0, sizeof(struct v4l2_plane) * buffer->iNumPlanes);
   memset(&vbuf, 0, sizeof(struct v4l2_buffer));
   vbuf.type     = type;
   vbuf.memory   = memory;
-  vbuf.index    = index;
+  vbuf.index    = buffer->iIndex;
   vbuf.m.planes = vplanes;
   vbuf.length   = buffer->iNumPlanes;
   if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
@@ -230,7 +229,7 @@ int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type,
     vbuf.timestamp.tv_usec = pts[1];
   }
 
-  for (int i = 0; i < buffer->iNumPlanes; i++) 
+  for (int i = 0; i < buffer->iNumPlanes; i++)
   {
     vplanes[i].m.userptr   = (unsigned long)buffer->cPlane[i];
     vplanes[i].length      = buffer->iSize[i];
@@ -245,7 +244,7 @@ int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type,
   }
   buffer->bQueue = true;
 
-  return index;
+  return vbuf.index;
 }
 
 int CLinuxV4l2::PollInput(int device, int timeout)
@@ -300,7 +299,7 @@ int CLinuxV4l2::SetControllValue(int device, int id, int value)
 
   ret = ioctl(device, VIDIOC_S_CTRL, &control);
 
-  if(ret < 0) 
+  if(ret < 0)
   {
     CLog::Log(LOGERROR, "%s::%s - Set controll if %d value %d\n", CLASSNAME, __func__, id, value);
     return V4L2_ERROR;

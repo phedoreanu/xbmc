@@ -60,9 +60,8 @@ public:
   static bool MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enum v4l2_buf_type type, enum v4l2_memory memory, bool queue = true);
   static V4L2Buffer *FreeBuffers(int count, V4L2Buffer *v4l2Buffers);
 
-  static int DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, int planes, double *dequeuedTimestamp);
-  static int QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, 
-      int planes, int index, V4L2Buffer *buffer);
+  static int DequeueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, double *dequeuedTimestamp);
+  static int QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memory memory, V4L2Buffer *buffer);
 
   static int PollInput(int device, int timeout);
   static int PollOutput(int device, int timeout);
@@ -72,4 +71,3 @@ public:
 inline int v4l2_align(int v, int a) {
   return ((v + a - 1) / a) * a;
 }
-
