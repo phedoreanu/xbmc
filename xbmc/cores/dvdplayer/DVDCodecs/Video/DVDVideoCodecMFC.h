@@ -78,11 +78,11 @@ protected:
   V4L2Buffer *m_v4l2MFCOutputBuffers;
   V4L2Buffer *m_v4l2MFCCaptureBuffers;
   V4L2Buffer *m_v4l2FIMCCaptureBuffers;
-  
+
   int m_iDequeuedToPresentBufferNumber;
-  
+
   bool m_bVideoConvert;
-  CDVDStreamInfo  m_hints;
+  CDVDStreamInfo m_hints;
 
   CBitstreamConverter m_converter;
   bool m_bDropPictures;
