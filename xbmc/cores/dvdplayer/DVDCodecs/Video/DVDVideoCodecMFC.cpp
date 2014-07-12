@@ -26,6 +26,7 @@
 #include "DVDDemuxers/DVDDemux.h"
 #include "DVDStreamInfo.h"
 #include "DVDClock.h"
+#include "guilib/GraphicContext.h"
 #include "DVDCodecs/DVDCodecs.h"
 #include "DVDCodecs/DVDCodecUtils.h"
 
@@ -33,8 +34,6 @@
 #include "settings/DisplaySettings.h"
 #include "settings/AdvancedSettings.h"
 #include "utils/fastmemcpy.h"
-
-#include <linux/LinuxV4l2.h>
 
 #include <sys/mman.h>
 #include <sys/ioctl.h>
