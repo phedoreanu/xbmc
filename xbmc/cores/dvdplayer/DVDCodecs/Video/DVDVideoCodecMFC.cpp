@@ -557,7 +557,8 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       index++;
 
     if (index >= m_MFCOutputBuffersCount) { //all input buffers are busy, dequeue needed
-      ret = CLinuxV4l2::PollOutput(m_iDecoderHandle, 1000/20); // 20 fps gap wait time. POLLIN - Capture, POLLOUT - Output
+      ret = CLinuxV4l2::PollOutput(m_iDecoderHandle, 1000/3); // Wait up to 1/3 (3 fps) sec for buffer to become available to recieve new encoded frame.
+                                                              // POLLIN - Capture, POLLOUT - Output
       if (ret == V4L2_ERROR) {
         CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT PollOutput Error", CLASSNAME, __func__);
         return VC_ERROR;
