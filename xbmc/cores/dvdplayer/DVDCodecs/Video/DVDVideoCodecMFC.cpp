@@ -139,7 +139,7 @@ bool CDVDVideoCodecMFC::OpenDevices() {
         }
         if (m_iConverterHandle < 0 && strstr(drivername, "fimc") != NULL && strstr(drivername, "m2m") != NULL) {
           struct v4l2_capability cap;
-          int fd = open(devname, O_RDWR, 0);
+          int fd = open(devname, O_RDWR | O_NONBLOCK, 0);
           if (fd > 0) {
             memzero(cap);
             ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
@@ -658,6 +658,15 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       }
       CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT <- %d", CLASSNAME, __func__, index);
 
+      index = CLinuxV4l2::DequeueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, &dequeuedTimestamp);
+      if (index < 0) {
+        if (errno == EAGAIN) // Dequeue buffer not ready, need more data on input. EAGAIN = 11
+          return VC_BUFFER;
+        CLog::Log(LOGERROR, "%s::%s - FIMC CAPTURE error dequeue output buffer, got number %d, errno %d", CLASSNAME, __func__, index, errno);
+        return VC_FLUSHED;
+      }
+      CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE -> %d", CLASSNAME, __func__, index);
+
       ret = CLinuxV4l2::DequeueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_USERPTR, &dequeuedTimestamp);
       if (ret < 0) {
         if (errno == EAGAIN) // Dequeue buffer not ready, need more data on input. EAGAIN = 11
@@ -672,15 +681,6 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
         return VC_FLUSHED;
       }
       CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE <- %d", CLASSNAME, __func__, ret);
-
-      index = CLinuxV4l2::DequeueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, &dequeuedTimestamp);
-      if (index < 0) {
-        if (errno == EAGAIN) // Dequeue buffer not ready, need more data on input. EAGAIN = 11
-          return VC_BUFFER;
-        CLog::Log(LOGERROR, "%s::%s - FIMC CAPTURE error dequeue output buffer, got number %d, errno %d", CLASSNAME, __func__, index, errno);
-        return VC_FLUSHED;
-      }
-      CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE -> %d", CLASSNAME, __func__, index);
 
       m_v4l2FIMCCaptureBuffers[index].bQueue = false;
       m_v4l2FIMCCaptureBuffers[index].timestamp = dequeuedTimestamp;
