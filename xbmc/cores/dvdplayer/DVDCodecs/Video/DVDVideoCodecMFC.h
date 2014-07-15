@@ -25,6 +25,10 @@
 #include "utils/BitstreamConverter.h"
 #include "xbmc/linux/LinuxV4l2.h"
 
+#ifndef V4L2_CAP_VIDEO_M2M_MPLANE
+  #define V4L2_CAP_VIDEO_M2M_MPLANE 0x00004000
+#endif
+
 #define STREAM_BUFFER_SIZE            1048576 //compressed frame size buffer. for unknown reason, possibly the firmware bug,
                                               //if set to lower values it corrupts adjacent value in the setup data structure for h264 streams
                                               //and leads to stream hangs on heavy frames

@@ -22,6 +22,10 @@
 
 #include <linux/videodev2.h>
 
+#ifndef V4L2_BUF_FLAG_TIMESTAMP_COPY
+  #define V4L2_BUF_FLAG_TIMESTAMP_COPY 0x4000
+#endif
+
 #define V4L2_ERROR -1
 #define V4L2_BUSY  1
 #define V4L2_READY 2
