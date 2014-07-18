@@ -203,6 +203,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   struct v4l2_control ctrl;
   struct v4l2_crop crop;
   int iResultVideoWidth;
+  int iResultLineSize;
   int iResultVideoHeight;
   int ret = 0;
   unsigned int extraSize = 0;
@@ -337,6 +338,10 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     return false;
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE G_FMT: fmt 0x%x, (%dx%d), plane[0]=%d plane[1]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, fmt.fmt.pix_mp.plane_fmt[1].sizeimage);
+  // Size of resulting picture coming out of MFC
+  // It will be aligned by 16 since the picture is tiled
+  // We need this to know where to split buffer line by line
+  iResultLineSize = fmt.fmt.pix_mp.width;
 
   // Setup FIMC OUTPUT fmt with data from MFC CAPTURE received on previous step
   if (m_iConverterHandle >= 0) {
@@ -369,6 +374,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     return false;
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE G_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
+  // This is the picture boundaries we are interested in, everything outside is alignement because of tiled MFC output
   iResultVideoWidth = crop.c.width;
   iResultVideoHeight = crop.c.height;
 
@@ -380,16 +386,23 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
       return false;
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT S_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
-
+//  FIMC scaling doesn't work good on width not a division of 16. It reports the picture to be scaled as requested,
+//  but real scale size cannot be surely determined (it is a floor of alignement to 16).
+//  I decided that than working around all this bugs it would be better to disable scaling at all. XBMC will scale picture itself good enough
+/*
     // Calculate FIMC final picture size be scaled to fit screen
     RESOLUTION_INFO res_info =  CDisplaySettings::Get().GetResolutionInfo(g_graphicsContext.GetVideoResolution());
     double ratio = std::min((double)res_info.iScreenWidth / (double)iResultVideoWidth, (double)res_info.iScreenHeight / (double)iResultVideoHeight);
     iResultVideoWidth = (int)((double)iResultVideoWidth * ratio);
     iResultVideoHeight = (int)((double)iResultVideoHeight * ratio);
+    // Since (int) is a floor down, if resulting picture is not even, the natural way to align will be to add 1 pixel
     if (iResultVideoWidth%2)
-      iResultVideoWidth--;
+      iResultVideoWidth++;
     if (iResultVideoHeight%2)
-      iResultVideoHeight--;
+      iResultVideoHeight++;
+
+    CLog::Log(LOGDEBUG, "%s::%s - Scaling source Video to resulting size (%dx%d)", CLASSNAME, __func__, iResultVideoWidth, iResultVideoHeight);
+*/
   }
 
   // Request MFC CAPTURE buffers
@@ -442,19 +455,6 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE S_FMT: fmt 0x%x, (%dx%d)", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height);
 
-    // Setup FIMC CAPTURE crop
-    memzero(crop);
-    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-    crop.c.left = 0;
-    crop.c.top = 0;
-    crop.c.width = iResultVideoWidth;
-    crop.c.height = iResultVideoHeight;
-    if (ioctl(m_iConverterHandle, VIDIOC_S_CROP, &crop)) {
-      CLog::Log(LOGERROR, "%s::%s - FIMC CAPTURE S_CROP Failed", CLASSNAME, __func__);
-      return false;
-    }
-    CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE S_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
-
     // Get FIMC produced picture details to adjust output buffer parameters with these values
     memzero(fmt);
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
@@ -464,6 +464,12 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
       return false;
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE G_FMT: fmt 0x%x, (%dx%d), plane[0]=%d plane[1]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, fmt.fmt.pix_mp.plane_fmt[1].sizeimage);
+
+    // Width and Height returned after this call is the real resulting picture size produced by FIMC
+    iResultVideoWidth = fmt.fmt.pix_mp.width;
+    iResultVideoHeight = fmt.fmt.pix_mp.height;
+    // As well as the buffer line size
+    iResultLineSize = fmt.fmt.pix_mp.width;
 
     // Request FIMC CAPTURE buffers
     m_FIMCCaptureBuffersCount = CLinuxV4l2::RequestBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, FIMC_CAPTURE_BUFFERS_CNT);
@@ -515,8 +521,8 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   m_videoBuffer.data[3]         = NULL;
 
   m_videoBuffer.format          = RENDER_FMT_NV12;
-  m_videoBuffer.iLineSize[0]    = iResultVideoWidth;
-  m_videoBuffer.iLineSize[1]    = iResultVideoWidth;
+  m_videoBuffer.iLineSize[0]    = iResultLineSize;
+  m_videoBuffer.iLineSize[1]    = iResultLineSize;
   m_videoBuffer.iLineSize[2]    = 0;
   m_videoBuffer.iLineSize[3]    = 0;
   m_videoBuffer.pts             = DVD_NOPTS_VALUE;
