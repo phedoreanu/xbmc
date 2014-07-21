@@ -782,9 +782,11 @@ case $use_platform in
      use_cpu=cortex-a9
      use_odroidgles=yes
      use_mfc=yes
+     use_x11=no
      ARCH="arm"
      CFLAGS="$CFLAGS"
      CXXFLAGS="$CXXFLAGS"
+     LIBS="-lX11 $LIBS"
      ffmpeg_target_os=linux
      ;;
   odroid-xu)
@@ -793,6 +795,7 @@ case $use_platform in
      use_cpu=cortex-a15
      use_hybris=yes
      use_mfc=yes
+     use_x11=no
      ARCH="arm"
      CFLAGS="$CFLAGS"
      CXXFLAGS="$CXXFLAGS"
