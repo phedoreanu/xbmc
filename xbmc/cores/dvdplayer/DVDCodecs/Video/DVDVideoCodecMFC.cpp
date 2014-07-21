@@ -464,12 +464,19 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
       return false;
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE G_FMT: fmt 0x%x, (%dx%d), plane[0]=%d plane[1]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, fmt.fmt.pix_mp.plane_fmt[1].sizeimage);
-
-    // Width and Height returned after this call is the real resulting picture size produced by FIMC
-    iResultVideoWidth = fmt.fmt.pix_mp.width;
-    iResultVideoHeight = fmt.fmt.pix_mp.height;
-    // As well as the buffer line size
+    // The length of the line on the result buffer
     iResultLineSize = fmt.fmt.pix_mp.width;
+
+    memzero(crop);
+    crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+    if (ioctl(m_iConverterHandle, VIDIOC_G_CROP, &crop)) {
+      CLog::Log(LOGERROR, "%s::%s - FIMC CAPTURE G_CROP Failed", CLASSNAME, __func__);
+      return false;
+    }
+    CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE G_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
+    // Width and Height returned after this call is the real resulting picture size produced by FIMC
+    iResultVideoWidth = crop.c.width;
+    iResultVideoHeight = crop.c.height;
 
     // Request FIMC CAPTURE buffers
     m_FIMCCaptureBuffersCount = CLinuxV4l2::RequestBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, FIMC_CAPTURE_BUFFERS_CNT);
