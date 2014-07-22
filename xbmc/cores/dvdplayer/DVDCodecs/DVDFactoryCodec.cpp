@@ -48,6 +48,9 @@
 #include "Overlay/DVDOverlayCodecText.h"
 #include "Overlay/DVDOverlayCodecTX3G.h"
 #include "Overlay/DVDOverlayCodecFFmpeg.h"
+#if defined(HAS_MFC)
+#include "Video/DVDVideoCodecMfc.h"
+#endif
 
 
 #include "DVDStreamInfo.h"
@@ -169,8 +172,21 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, unsigne
 #elif defined(_LINUX) && !defined(TARGET_DARWIN)
   hwSupport += "VAAPI:no ";
 #endif
+#if defined(HAS_MFC) && defined(_LINUX)
+  hwSupport += "MFC:yes ";
+#elif defined(_LINUX)
+  hwSupport += "MFC:no ";
+#endif
 
   CLog::Log(LOGDEBUG, "CDVDFactoryCodec: compiled in hardware support: %s", hwSupport.c_str());
+
+#if defined(HAS_MFC5) && defined(_LINUX)
+  if ( !hint.software ) {
+    if ( hint.codec == CODEC_ID_H263 || hint.codec == CODEC_ID_H264 || hint.codec == CODEC_ID_MPEG4 || hint.codec == CODEC_ID_MPEG2VIDEO || CODEC_ID_MPEG1VIDEO || hint.codec == CODEC_ID_VC1 ) {
+      if( (pCodec = OpenCodec(new CDVDVideoCodecMfc(), hint, options)) ) return pCodec;
+    }
+  }
+#endif
 
   // dvd's have weird still-frames in it, which is not fully supported in ffmpeg
   if(hint.stills && (hint.codec == CODEC_ID_MPEG2VIDEO || hint.codec == CODEC_ID_MPEG1VIDEO))
