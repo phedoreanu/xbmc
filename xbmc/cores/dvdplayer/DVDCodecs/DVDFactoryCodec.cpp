@@ -180,10 +180,10 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, unsigne
 
   CLog::Log(LOGDEBUG, "CDVDFactoryCodec: compiled in hardware support: %s", hwSupport.c_str());
 
-#if defined(HAS_MFC5) && defined(_LINUX)
+#if defined(HAS_MFC) && defined(_LINUX)
   if ( !hint.software ) {
     if ( hint.codec == CODEC_ID_H263 || hint.codec == CODEC_ID_H264 || hint.codec == CODEC_ID_MPEG4 || hint.codec == CODEC_ID_MPEG2VIDEO || CODEC_ID_MPEG1VIDEO || hint.codec == CODEC_ID_VC1 ) {
-      if( (pCodec = OpenCodec(new CDVDVideoCodecMfc(), hint, options)) ) return pCodec;
+      if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
     }
   }
 #endif
