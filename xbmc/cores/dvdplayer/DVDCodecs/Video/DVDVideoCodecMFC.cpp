@@ -54,6 +54,9 @@ CDVDVideoCodecMFC::CDVDVideoCodecMFC() : CDVDVideoCodec() {
   m_MFCCaptureBuffersCount = 0;
   m_FIMCCaptureBuffersCount = 0;
 
+  m_OutputPlaneU = NULL;
+  m_OutputPlaneV = NULL;
+
   m_iDecoderHandle = -1;
   m_iConverterHandle = -1;
   m_bVideoConvert = false;
@@ -188,12 +191,13 @@ void CDVDVideoCodecMFC::Dispose() {
     m_iDecoderHandle = -1;
   }
 
-/*
-  if (m_OutputPlaneU)
-    free(m_OutputPlaneU);
-  if (m_OutputPlaneV)
-    free(m_OutputPlaneV);
-*/
+  if (m_OutputPlaneU != NULL)
+    delete[] m_OutputPlaneU;
+  if (m_OutputPlaneV != NULL)
+    delete[] m_OutputPlaneV;
+
+  m_OutputPlaneU = NULL;
+  m_OutputPlaneV = NULL;
 
   m_iDequeuedToPresentBufferNumber = -1;
 
@@ -362,7 +366,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE Failed to get the number of buffers required", CLASSNAME, __func__);
     return false;
   }
-  CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
+  CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, ctrl.value);
   m_MFCCaptureBuffersCount = (int)(ctrl.value * 1.5); //We need 50% more extra capture buffers for cozy decoding
 
   // Get MFC CAPTURE crop
@@ -545,6 +549,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
 
 void CDVDVideoCodecMFC::SetDropState(bool bDrop) {
 
+  CLog::Log(LOGDEBUG, "%s::%s - SetDropState %d", CLASSNAME, __func__, bDrop);
   m_bDropPictures = bDrop;
   if (m_bDropPictures)
     m_videoBuffer.iFlags |=  DVP_FLAG_DROPPED;
@@ -664,7 +669,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       return VC_FLUSHED;
     }
     CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE <- %d", CLASSNAME, __func__, index);
-    return VC_BUFFER; // Continue, we have no picture to show
+    return VC_BUFFER | VC_PICTURE; // Continue, VC_PICTURE is needed for XBMC 12 to continue showing something on screen. It's a buggy behaviour
   } else {
     if (m_iConverterHandle >= 0) {
       ret = CLinuxV4l2::QueueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_USERPTR, &m_v4l2MFCCaptureBuffers[index]);

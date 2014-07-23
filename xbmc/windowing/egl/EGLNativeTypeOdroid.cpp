@@ -31,8 +31,6 @@
 
 #include <unistd.h>
 
-#include "utils/StringUtils.h"
-
 #ifdef CLASSNAME
 #undef CLASSNAME
 #endif
@@ -62,10 +60,8 @@ bool CEGLNativeTypeOdroid::CheckCompatibility()
           if (needle && strlen(needle)>3)
           {
             needle+=2;
-            if (strncmp(needle, "ODROID", strlen("ODROID"))==0) {
-//                printf("%s::%s using odroid EGL\n", CLASSNAME, __func__);
-                return true;
-            }
+            if (strncmp(needle, "ODROID", strlen("ODROID"))==0)
+              return true;
           }
         }
       }
@@ -86,14 +82,17 @@ void CEGLNativeTypeOdroid::Destroy()
 
 bool CEGLNativeTypeOdroid::CreateNativeDisplay()
 {
+#ifdef HAS_ODROIDGLES
   m_nativeDisplay = XOpenDisplay(NULL);
   if (m_nativeDisplay)
     return true;
+#endif
   return false;
 }
 
 bool CEGLNativeTypeOdroid::CreateNativeWindow()
 {
+#ifdef HAS_ODROIDGLES
     if (!m_nativeDisplay) 
       return false;
 
@@ -157,10 +156,10 @@ bool CEGLNativeTypeOdroid::CreateNativeWindow()
 
     m_nativeWindow = (EGLNativeWindowType *) nativeWindow;
 
-    if (!m_nativeWindow)
-      return false;
-
-    return true;
+    if (m_nativeWindow)
+      return true;
+#endif
+    return false;
 }
 
 bool CEGLNativeTypeOdroid::GetNativeDisplay(XBNativeDisplayType **nativeDisplay) const
@@ -204,7 +203,7 @@ bool CEGLNativeTypeOdroid::GetNativeResolution(RESOLUTION_INFO *res) const
     res->bFullScreen    = true;
     res->iSubtitles     = (int)(0.965 * res->iHeight);
     res->fPixelRatio    = 1.0f;
-    res->strMode       = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate, res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
+    res->strMode.Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate, res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
 
     CLog::Log(LOGNOTICE,"Current resolution: %dx%d\n", window_attr.width, window_attr.height);
     return true;
