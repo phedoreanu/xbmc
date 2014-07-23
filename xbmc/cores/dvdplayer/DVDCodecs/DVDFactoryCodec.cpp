@@ -49,7 +49,7 @@
 #include "Overlay/DVDOverlayCodecTX3G.h"
 #include "Overlay/DVDOverlayCodecFFmpeg.h"
 #if defined(HAS_MFC)
-#include "Video/DVDVideoCodecMfc.h"
+#include "Video/DVDVideoCodecMFC.h"
 #endif
 
 

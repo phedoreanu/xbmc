@@ -20,7 +20,7 @@
  *
  */
 
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
 #include <hwcomposerwindow/hwcomposer_window.h>
 #include <hardware/hardware.h>
 #include <hardware/hwcomposer.h>
@@ -31,6 +31,7 @@
 
 class CEGLNativeTypeHybris;
 
+#ifdef HAS_HYBRIS
 class CHybrisVideoRenderer : public CThread
 {
 public:
@@ -45,6 +46,7 @@ private:
 protected:
   void Process();
 };
+#endif
 
 class CEGLNativeTypeHybris : public CEGLNativeType
 {
@@ -72,13 +74,13 @@ public:
 
   virtual bool  ShowWindow(bool show);
   void SwapSurface(EGLDisplay display, EGLSurface surface);
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
 private:
   hw_module_t                *m_hwcModule;
   hwc_display_contents_1_t   **m_bufferList;
   hwc_composer_device_1_t    *m_hwcDevicePtr;
   HWComposerNativeWindow     *m_hwNativeWindow;
   ANativeWindow              *m_swNativeWindow;
-#endif
   CHybrisVideoRenderer       *m_videoRenderThread;
+#endif
 };

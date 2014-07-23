@@ -17,7 +17,7 @@
  *  <http://www.gnu.org/licenses/>.
  *
  */
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
 #include <hwcomposerwindow/hwcomposer_window.h>
 #include <hardware/hardware.h>
 #include <hardware/hwcomposer.h>
@@ -34,6 +34,7 @@
 CEvent displayEvent;
 CEvent paintEvent;
 
+#ifdef HAS_HYBRIS
 CHybrisVideoRenderer::CHybrisVideoRenderer(hwc_display_contents_1_t **bufferList,
     hwc_composer_device_1_t *hwcDevicePtr,
     HWComposerNativeWindow *nativeWindow)
@@ -116,9 +117,10 @@ void CHybrisVideoRenderer::Process()
 
   }
 }
+#endif
 
 CEGLNativeTypeHybris::CEGLNativeTypeHybris()
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
  : m_hwcModule(NULL), m_bufferList(NULL), m_hwcDevicePtr(NULL)
 {
   m_nativeWindow = NULL;
@@ -136,7 +138,7 @@ CEGLNativeTypeHybris::~CEGLNativeTypeHybris()
 
 bool CEGLNativeTypeHybris::CheckCompatibility()
 {
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
   if(hw_get_module(HWC_HARDWARE_MODULE_ID, (const hw_module_t **) &m_hwcModule))
   {
     return false;
@@ -172,7 +174,7 @@ bool CEGLNativeTypeHybris::CreateNativeDisplay()
 
 bool CEGLNativeTypeHybris::CreateNativeWindow()
 {
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
   RESOLUTION_INFO res;
   if (!GetNativeResolution(&res))
     return false;
@@ -251,7 +253,7 @@ bool CEGLNativeTypeHybris::GetNativeWindow(XBNativeWindowType **nativeWindow) co
   if (!nativeWindow)
     return false;
 
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
   *nativeWindow = (XBNativeWindowType*) &m_swNativeWindow;
   return (m_swNativeWindow != NULL);
 #else
@@ -272,7 +274,7 @@ bool CEGLNativeTypeHybris::DestroyNativeWindow()
 
 bool CEGLNativeTypeHybris::GetNativeResolution(RESOLUTION_INFO *res) const
 {
-#if defined(TARGET_HYBRIS)
+#ifdef HAS_HYBRIS
   uint32_t configs[5];
   size_t numConfigs = 5;
 
@@ -302,6 +304,7 @@ bool CEGLNativeTypeHybris::GetNativeResolution(RESOLUTION_INFO *res) const
   CLog::Log(LOGNOTICE,"Current resolution: %s\n",res->strMode.c_str());
   return true;
 #endif
+  return false;
 }
 
 bool CEGLNativeTypeHybris::SetNativeResolution(const RESOLUTION_INFO &res)
