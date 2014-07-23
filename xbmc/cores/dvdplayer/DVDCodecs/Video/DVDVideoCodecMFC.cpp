@@ -362,7 +362,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE Failed to get the number of buffers required", CLASSNAME, __func__);
     return false;
   }
-  CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
+  CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, ctrl.value);
   m_MFCCaptureBuffersCount = (int)(ctrl.value * 1.5); //We need 50% more extra capture buffers for cozy decoding
 
   // Get MFC CAPTURE crop
