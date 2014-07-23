@@ -26,12 +26,9 @@
 #include "DVDDemuxers/DVDDemux.h"
 #include "DVDStreamInfo.h"
 #include "DVDClock.h"
-#include "guilib/GraphicContext.h"
 #include "DVDCodecs/DVDCodecs.h"
 #include "DVDCodecs/DVDCodecUtils.h"
 
-#include "settings/Settings.h"
-#include "settings/AdvancedSettings.h"
 #include "utils/fastmemcpy.h"
 
 #include <sys/mman.h>
@@ -191,6 +188,13 @@ void CDVDVideoCodecMFC::Dispose() {
     m_iDecoderHandle = -1;
   }
 
+/*
+  if (m_OutputPlaneU)
+    free(m_OutputPlaneU);
+  if (m_OutputPlaneV)
+    free(m_OutputPlaneV);
+*/
+
   m_iDequeuedToPresentBufferNumber = -1;
 
   memzero(m_videoBuffer);
@@ -201,9 +205,6 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   struct v4l2_format fmt;
   struct v4l2_control ctrl;
   struct v4l2_crop crop;
-  int iResultVideoWidth;
-  int iResultLineSize;
-  int iResultVideoHeight;
   int ret = 0;
   unsigned int extraSize = 0;
   uint8_t *extraData = NULL;
@@ -340,7 +341,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   // Size of resulting picture coming out of MFC
   // It will be aligned by 16 since the picture is tiled
   // We need this to know where to split buffer line by line
-  iResultLineSize = fmt.fmt.pix_mp.width;
+  m_ResultLineSize = fmt.fmt.pix_mp.width;
 
   // Setup FIMC OUTPUT fmt with data from MFC CAPTURE received on previous step
   if (m_iConverterHandle >= 0) {
@@ -374,8 +375,8 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE G_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
   // This is the picture boundaries we are interested in, everything outside is alignement because of tiled MFC output
-  iResultVideoWidth = crop.c.width;
-  iResultVideoHeight = crop.c.height;
+  m_ResultVideoWidth = crop.c.width;
+  m_ResultVideoHeight = crop.c.height;
 
   if (m_iConverterHandle >= 0) {
     // Setup FIMC OUTPUT crop with data from MFC CAPTURE received on previous step
@@ -391,16 +392,16 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
 /*
     // Calculate FIMC final picture size be scaled to fit screen
     RESOLUTION_INFO res_info =  CDisplaySettings::Get().GetResolutionInfo(g_graphicsContext.GetVideoResolution());
-    double ratio = std::min((double)res_info.iScreenWidth / (double)iResultVideoWidth, (double)res_info.iScreenHeight / (double)iResultVideoHeight);
-    iResultVideoWidth = (int)((double)iResultVideoWidth * ratio);
-    iResultVideoHeight = (int)((double)iResultVideoHeight * ratio);
+    double ratio = std::min((double)res_info.iScreenWidth / (double)m_ResultVideoWidth, (double)res_info.iScreenHeight / (double)m_ResultVideoHeight);
+    m_ResultVideoWidth = (int)((double)m_ResultVideoWidth * ratio);
+    m_ResultVideoHeight = (int)((double)m_ResultVideoHeight * ratio);
     // Since (int) is a floor down, if resulting picture is not even, the natural way to align will be to add 1 pixel
-    if (iResultVideoWidth%2)
-      iResultVideoWidth++;
-    if (iResultVideoHeight%2)
-      iResultVideoHeight++;
+    if (m_ResultVideoWidth%2)
+      m_ResultVideoWidth++;
+    if (m_ResultVideoHeight%2)
+      m_ResultVideoHeight++;
 
-    CLog::Log(LOGDEBUG, "%s::%s - Scaling source Video to resulting size (%dx%d)", CLASSNAME, __func__, iResultVideoWidth, iResultVideoHeight);
+    CLog::Log(LOGDEBUG, "%s::%s - Scaling source Video to resulting size (%dx%d)", CLASSNAME, __func__, m_ResultVideoWidth, m_ResultVideoHeight);
 */
   }
 
@@ -444,8 +445,8 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     memzero(fmt);
     fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-    fmt.fmt.pix_mp.width = iResultVideoWidth;
-    fmt.fmt.pix_mp.height = iResultVideoHeight;
+    fmt.fmt.pix_mp.width = m_ResultVideoWidth;
+    fmt.fmt.pix_mp.height = m_ResultVideoHeight;
     fmt.fmt.pix_mp.field = V4L2_FIELD_ANY;
     ret = ioctl(m_iConverterHandle, VIDIOC_S_FMT, &fmt);
     if (ret != 0) {
@@ -464,7 +465,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE G_FMT: fmt 0x%x, (%dx%d), plane[0]=%d plane[1]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, fmt.fmt.pix_mp.plane_fmt[1].sizeimage);
     // The length of the line on the result buffer
-    iResultLineSize = fmt.fmt.pix_mp.width;
+    m_ResultLineSize = fmt.fmt.pix_mp.width;
 
     memzero(crop);
     crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
@@ -474,8 +475,8 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     }
     CLog::Log(LOGDEBUG, "%s::%s - FIMC CAPTURE G_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
     // Width and Height returned after this call is the real resulting picture size produced by FIMC
-    iResultVideoWidth = crop.c.width;
-    iResultVideoHeight = crop.c.height;
+    m_ResultVideoWidth = crop.c.width;
+    m_ResultVideoHeight = crop.c.height;
 
     // Request FIMC CAPTURE buffers
     m_FIMCCaptureBuffersCount = CLinuxV4l2::RequestBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, FIMC_CAPTURE_BUFFERS_CNT);
@@ -511,25 +512,28 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
 
   }
 
+  m_OutputPlaneU = new BYTE[(m_ResultLineSize * m_ResultVideoHeight) >> 2];
+  m_OutputPlaneV = new BYTE[(m_ResultLineSize * m_ResultVideoHeight) >> 2];
+
   m_videoBuffer.iFlags          = DVP_FLAG_ALLOCATED;
 
   m_videoBuffer.color_range     = 0;
   m_videoBuffer.color_matrix    = 4;
 
-  m_videoBuffer.iDisplayWidth   = iResultVideoWidth;
-  m_videoBuffer.iDisplayHeight  = iResultVideoHeight;
-  m_videoBuffer.iWidth          = iResultVideoWidth;
-  m_videoBuffer.iHeight         = iResultVideoHeight;
+  m_videoBuffer.iDisplayWidth   = m_ResultVideoWidth;
+  m_videoBuffer.iDisplayHeight  = m_ResultVideoHeight;
+  m_videoBuffer.iWidth          = m_ResultVideoWidth;
+  m_videoBuffer.iHeight         = m_ResultVideoHeight;
 
   m_videoBuffer.data[0]         = NULL;
-  m_videoBuffer.data[1]         = NULL;
-  m_videoBuffer.data[2]         = NULL;
+  m_videoBuffer.data[1]         = m_OutputPlaneU;
+  m_videoBuffer.data[2]         = m_OutputPlaneV;
   m_videoBuffer.data[3]         = NULL;
 
-  m_videoBuffer.format          = RENDER_FMT_NV12;
-  m_videoBuffer.iLineSize[0]    = iResultLineSize;
-  m_videoBuffer.iLineSize[1]    = iResultLineSize;
-  m_videoBuffer.iLineSize[2]    = 0;
+  m_videoBuffer.format          = RENDER_FMT_YUV420P;
+  m_videoBuffer.iLineSize[0]    = m_ResultLineSize;
+  m_videoBuffer.iLineSize[1]    = m_ResultLineSize >> 1;
+  m_videoBuffer.iLineSize[2]    = m_ResultLineSize >> 1;
   m_videoBuffer.iLineSize[3]    = 0;
   m_videoBuffer.pts             = DVD_NOPTS_VALUE;
   m_videoBuffer.dts             = DVD_NOPTS_VALUE;
@@ -696,14 +700,16 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
       m_v4l2FIMCCaptureBuffers[index].bQueue = false;
       m_v4l2FIMCCaptureBuffers[index].timestamp = dequeuedTimestamp;
+
+      deinterleave_chroma_neon(m_OutputPlaneU, m_OutputPlaneV, m_v4l2FIMCCaptureBuffers[index].cPlane[1], m_ResultLineSize >> 1, m_ResultVideoHeight >> 1);
       m_videoBuffer.data[0]         = (BYTE*)m_v4l2FIMCCaptureBuffers[index].cPlane[0];
-      m_videoBuffer.data[1]         = (BYTE*)m_v4l2FIMCCaptureBuffers[index].cPlane[1];
       m_videoBuffer.pts             = m_v4l2FIMCCaptureBuffers[index].timestamp;
     } else {
+      deinterleave_chroma_neon(m_OutputPlaneU, m_OutputPlaneV, m_v4l2MFCCaptureBuffers[index].cPlane[1], m_ResultLineSize >> 1, m_ResultVideoHeight >> 1);
       m_videoBuffer.data[0]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[0];
-      m_videoBuffer.data[1]         = (BYTE*)m_v4l2MFCCaptureBuffers[index].cPlane[1];
       m_videoBuffer.pts             = m_v4l2MFCCaptureBuffers[index].timestamp;
     }
+
     m_iDequeuedToPresentBufferNumber = index;
   }
 

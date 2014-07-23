@@ -6,22 +6,20 @@
 
 #define U       r0
 #define V       r1
-#define OWIDTH  r2
-#define UV      r3
-#define IWIDTH  r4
-#define HEIGHT  r5
-#define COUNT   r6
+#define UV      r2
+#define WIDTH   r3
+#define HEIGHT  r4
+#define COUNT   r5
 
 deinterleave_chroma_neon:
   .fnstart
-  push    {r4-r6,lr}                       // save r4,r5,r6,lr in stack. 4 words
-  ldr     IWIDTH, [sp, #4*4]               // copy 5-th stack element to r4 (IWIDTH)
-  ldr     HEIGHT, [sp, #5*4]               // copy 6-th stack element to r5 (HEIGHT)
+  push    {r4-r5,lr}                       // save r4,r5,lr in stack. 3 words
+  ldr     HEIGHT, [sp, #3*4]               // copy 4-th stack element to r4 (HEIGHT)
 
   cmp     HEIGHT,  #0                      // compare HEIGHT == 0
 process_line:
-  pople   {r4-r6,pc}                       // if last comparsion result <=0 then pop r4,r5,r6, lr from stack will be written to pc (that means exit and continue code called .S)
-  mov     COUNT,   OWIDTH                  // COUNT = OWIDTH
+  pople   {r4-r5,pc}                       // if last comparsion result <=0 then pop r4,r5,lr from stack will be written to pc (that means exit and continue code called .S)
+  mov     COUNT,   WIDTH                   // COUNT = WIDTH
 process_block:
   pld     [UV]                             // Preload data from UV (signal processor that this data will most likely be loaded soon)
   vld2.u8 {d0,d1}, [UV]!                   // load 16-byte block from UV setting d0 as odd and d1 as even half-blocks, increment UV address by 16

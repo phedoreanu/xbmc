@@ -38,6 +38,8 @@
 
 #define memzero(x) memset(&(x), 0, sizeof (x))
 
+void deinterleave_chroma_neon ( void *u_out, void *v_out, void *uv_in, int width, int height) asm("deinterleave_chroma_neon");
+
 class CDVDVideoCodecMFC : public CDVDVideoCodec
 {
 public:
@@ -65,6 +67,13 @@ protected:
   V4L2Buffer *m_v4l2MFCOutputBuffers;
   V4L2Buffer *m_v4l2MFCCaptureBuffers;
   V4L2Buffer *m_v4l2FIMCCaptureBuffers;
+
+  int m_ResultLineSize;
+  int m_ResultVideoWidth;
+  int m_ResultVideoHeight;
+
+  BYTE *m_OutputPlaneU;
+  BYTE *m_OutputPlaneV;
 
   int m_iDequeuedToPresentBufferNumber;
 
