@@ -406,12 +406,13 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   }
 
   // Request MFC CAPTURE buffers
+  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE Going to ask for %d buffers", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
   m_MFCCaptureBuffersCount = CLinuxV4l2::RequestBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_MFCCaptureBuffersCount);
   if (m_MFCCaptureBuffersCount == V4L2_ERROR) {
     CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE REQBUFS Failed, errno %d", CLASSNAME, __func__, errno);
     return false;
   }
-  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE REQBUFS Number of buffers is %d", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
+  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE REQBUFS Number of buffers allowed by MFC %d", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
 
   // Allocate, Memory Map and queue MFC CAPTURE buffers
   m_v4l2MFCCaptureBuffers = (V4L2Buffer *)calloc(m_MFCCaptureBuffersCount, sizeof(V4L2Buffer));
