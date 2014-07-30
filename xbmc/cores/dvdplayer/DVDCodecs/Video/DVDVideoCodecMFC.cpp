@@ -393,7 +393,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     return false;
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE Stream ON", CLASSNAME, __func__);
-  
+
   if (m_iConverterHandle > -1) {
 
   // Setup FIMC OUTPUT fmt with data from MFC CAPTURE
@@ -597,19 +597,16 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
       demuxer_content = m_converter.GetConvertBuffer();
     }
 
-    if(demuxer_bytes < m_v4l2MFCOutputBuffers[index].iSize[0]) {
-      fast_memcpy((uint8_t *)m_v4l2MFCOutputBuffers[index].cPlane[0], demuxer_content, demuxer_bytes);
-      m_v4l2MFCOutputBuffers[index].iBytesUsed[0] = demuxer_bytes;
-      m_v4l2MFCOutputBuffers[index].timestamp = pts;
-
-      ret = CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_MMAP, &m_v4l2MFCOutputBuffers[index]);
-      if (ret == V4L2_ERROR) {
-        CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT Failed to queue buffer with index %d, errno %d", CLASSNAME, __func__, index, errno);
-        return VC_FLUSHED;
-      }
-      CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT <- %d", CLASSNAME, __func__, index);
-    } else
-      CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT Packet is to big to fit into the buffer", CLASSNAME, __func__);
+    demuxer_bytes = (demuxer_bytes < m_v4l2MFCOutputBuffers[index].iSize[0]) ? demuxer_bytes : m_v4l2MFCOutputBuffers[index].iSize[0];
+    fast_memcpy((uint8_t *)m_v4l2MFCOutputBuffers[index].cPlane[0], demuxer_content, demuxer_bytes);
+    m_v4l2MFCOutputBuffers[index].iBytesUsed[0] = demuxer_bytes;
+    m_v4l2MFCOutputBuffers[index].timestamp = pts;
+    ret = CLinuxV4l2::QueueBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_MMAP, &m_v4l2MFCOutputBuffers[index]);
+    if (ret == V4L2_ERROR) {
+      CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT Failed to queue buffer with index %d, errno %d", CLASSNAME, __func__, index, errno);
+      return VC_FLUSHED;
+    }
+    CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT <- %d", CLASSNAME, __func__, index);
   }
 
   if (m_iDequeuedToPresentBufferNumber >= 0) {
