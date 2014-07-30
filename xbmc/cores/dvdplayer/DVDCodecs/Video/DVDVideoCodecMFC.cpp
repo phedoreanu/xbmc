@@ -343,29 +343,7 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   // We need this to know where to split buffer line by line
   iResultLineSize = fmt.fmt.pix_mp.width;
 
-  // Setup FIMC OUTPUT fmt with data from MFC CAPTURE received on previous step
-  if (m_iConverterHandle >= 0) {
-    fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-    ret = ioctl(m_iConverterHandle, VIDIOC_S_FMT, &fmt);
-    if (ret != 0) {
-      CLog::Log(LOGERROR, "%s::%s - FIMC OUTPUT S_FMT Failed, errno %d", CLASSNAME, __func__, errno);
-      return false;
-    }
-    CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT S_FMT: fmt 0x%x, (%dx%d), plane[0]=%d plane[1]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, fmt.fmt.pix_mp.plane_fmt[1].sizeimage);
-  }
-
-  // Get MFC needed number of buffers on CAPTURE
-  memzero(ctrl);
-  ctrl.id = V4L2_CID_MIN_BUFFERS_FOR_CAPTURE;
-  ret = ioctl(m_iDecoderHandle, VIDIOC_G_CTRL, &ctrl);
-  if (ret) {
-    CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE Failed to get the number of buffers required, errno %d", CLASSNAME, __func__, errno);
-    return false;
-  }
-  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, ctrl.value);
-  m_MFCCaptureBuffersCount = (int)(ctrl.value * 1.5); //We need 50% more extra capture buffers for cozy decoding
-
-  // Get MFC CAPTURE crop
+  // Get MFC CAPTURE crop to check and setup Line Size as well as FIMC converter if needed
   memzero(crop);
   crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
   ret = ioctl(m_iDecoderHandle, VIDIOC_G_CROP, &crop);
@@ -378,33 +356,16 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   iResultVideoWidth = crop.c.width;
   iResultVideoHeight = crop.c.height;
 
-  if (m_iConverterHandle >= 0) {
-    // Setup FIMC OUTPUT crop with data from MFC CAPTURE received on previous step
-    crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-    if (ioctl(m_iConverterHandle, VIDIOC_S_CROP, &crop)) {
-      CLog::Log(LOGERROR, "%s::%s - FIMC OUTPUT S_CROP Failed to set crop information, errno %d", CLASSNAME, __func__, errno);
-      return false;
-    }
-    CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT S_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
-//  FIMC scaling doesn't work good on width not a division of 16. It reports the picture to be scaled as requested,
-//  but real scale size cannot be surely determined (it is a floor of alignement to 16).
-//  I decided that than working around all this bugs it would be better to disable scaling at all. XBMC will scale picture itself good enough
-/*
-    // Calculate FIMC final picture size be scaled to fit screen
-    RESOLUTION_INFO res_info =  CDisplaySettings::Get().GetResolutionInfo(g_graphicsContext.GetVideoResolution());
-    double ratio = std::min((double)res_info.iScreenWidth / (double)iResultVideoWidth, (double)res_info.iScreenHeight / (double)iResultVideoHeight);
-    iResultVideoWidth = (int)((double)iResultVideoWidth * ratio);
-    iResultVideoHeight = (int)((double)iResultVideoHeight * ratio);
-    // Since (int) is a floor down, if resulting picture is not even, the natural way to align will be to add 1 pixel
-    if (iResultVideoWidth%2)
-      iResultVideoWidth++;
-    if (iResultVideoHeight%2)
-      iResultVideoHeight++;
-
-    CLog::Log(LOGDEBUG, "%s::%s - Scaling source Video to resulting size (%dx%d)", CLASSNAME, __func__, iResultVideoWidth, iResultVideoHeight);
-*/
+  // Get MFC needed number of buffers on CAPTURE
+  memzero(ctrl);
+  ctrl.id = V4L2_CID_MIN_BUFFERS_FOR_CAPTURE;
+  ret = ioctl(m_iDecoderHandle, VIDIOC_G_CTRL, &ctrl);
+  if (ret) {
+    CLog::Log(LOGERROR, "%s::%s - MFC CAPTURE Failed to get the number of buffers required, errno %d", CLASSNAME, __func__, errno);
+    return false;
   }
-
+  CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE want %d buffers", CLASSNAME, __func__, ctrl.value);
+  m_MFCCaptureBuffersCount = (int)(ctrl.value * 1.5); //We need 50% more extra capture buffers for cozy decoding
   // Request MFC CAPTURE buffers
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE Going to ask for %d buffers", CLASSNAME, __func__, m_MFCCaptureBuffersCount);
   m_MFCCaptureBuffersCount = CLinuxV4l2::RequestBuffer(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, m_MFCCaptureBuffersCount);
@@ -432,8 +393,43 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     return false;
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE Stream ON", CLASSNAME, __func__);
+  
+  if (m_iConverterHandle > -1) {
 
-  if (m_iConverterHandle >= 0) {
+  // Setup FIMC OUTPUT fmt with data from MFC CAPTURE
+    fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+    ret = ioctl(m_iConverterHandle, VIDIOC_S_FMT, &fmt);
+    if (ret != 0) {
+      CLog::Log(LOGERROR, "%s::%s - FIMC OUTPUT S_FMT Failed, errno %d", CLASSNAME, __func__, errno);
+      return false;
+    }
+    CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT S_FMT: fmt 0x%x, (%dx%d), plane[0]=%d plane[1]=%d", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat, fmt.fmt.pix_mp.width, fmt.fmt.pix_mp.height, fmt.fmt.pix_mp.plane_fmt[0].sizeimage, fmt.fmt.pix_mp.plane_fmt[1].sizeimage);
+
+    // Setup FIMC OUTPUT crop with data from MFC CAPTURE
+    crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+    if (ioctl(m_iConverterHandle, VIDIOC_S_CROP, &crop)) {
+      CLog::Log(LOGERROR, "%s::%s - FIMC OUTPUT S_CROP Failed to set crop information, errno %d", CLASSNAME, __func__, errno);
+      return false;
+    }
+    CLog::Log(LOGDEBUG, "%s::%s - FIMC OUTPUT S_CROP (%dx%d)", CLASSNAME, __func__, crop.c.width, crop.c.height);
+//  FIMC scaling doesn't work good on width not a division of 16. It reports the picture to be scaled as requested,
+//  but real scale size cannot be surely determined (it is a floor of alignement to 16).
+//  I decided that than working around all this bugs it would be better to disable scaling at all. XBMC will scale picture itself good enough
+/*
+    // Calculate FIMC final picture size be scaled to fit screen
+    RESOLUTION_INFO res_info =  CDisplaySettings::Get().GetResolutionInfo(g_graphicsContext.GetVideoResolution());
+    double ratio = std::min((double)res_info.iScreenWidth / (double)iResultVideoWidth, (double)res_info.iScreenHeight / (double)iResultVideoHeight);
+    iResultVideoWidth = (int)((double)iResultVideoWidth * ratio);
+    iResultVideoHeight = (int)((double)iResultVideoHeight * ratio);
+    // Since (int) is a floor down, if resulting picture is not even, the natural way to align will be to add 1 pixel
+    if (iResultVideoWidth%2)
+      iResultVideoWidth++;
+    if (iResultVideoHeight%2)
+      iResultVideoHeight++;
+
+    CLog::Log(LOGDEBUG, "%s::%s - Scaling source Video to resulting size (%dx%d)", CLASSNAME, __func__, iResultVideoWidth, iResultVideoHeight);
+*/
+
     // Request FIMC OUTPUT buffers
     ret = CLinuxV4l2::RequestBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_USERPTR, m_MFCCaptureBuffersCount);
     if (ret == V4L2_ERROR) {
@@ -617,7 +613,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
   }
 
   if (m_iDequeuedToPresentBufferNumber >= 0) {
-    if (m_iConverterHandle >= 0) {
+    if (m_iConverterHandle > -1) {
      if (!m_v4l2FIMCCaptureBuffers[m_iDequeuedToPresentBufferNumber].bQueue) {
         ret = CLinuxV4l2::QueueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, V4L2_MEMORY_MMAP, &m_v4l2FIMCCaptureBuffers[m_iDequeuedToPresentBufferNumber]);
         if (ret == V4L2_ERROR) {
@@ -663,7 +659,7 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
     CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE <- %d", CLASSNAME, __func__, index);
     return VC_BUFFER; // Continue, we have no picture to show
   } else {
-    if (m_iConverterHandle >= 0) {
+    if (m_iConverterHandle > -1) {
       ret = CLinuxV4l2::QueueBuffer(m_iConverterHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, V4L2_MEMORY_USERPTR, &m_v4l2MFCCaptureBuffers[index]);
       if (ret == V4L2_ERROR) {
         CLog::Log(LOGERROR, "%s::%s - FIMC OUTPUT Failed to queue buffer with index %d, errno %d", CLASSNAME, __func__, index, errno);
