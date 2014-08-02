@@ -131,7 +131,7 @@ bool CLinuxV4l2::MmapBuffers(int device, int count, V4L2Buffer *v4l2Buffers, enu
           CLog::Log(LOGERROR, "%s::%s - Mmapping buffer", CLASSNAME, __func__);
           return false;
         }
-        buffer->mem_offset[j] = buf.m.planes[j].m.mem_offset;
+        buffer->iOffset[j] = buf.m.planes[j].m.mem_offset;
         memset(buffer->cPlane[j], 0, buf.m.planes[j].length);
         buffer->iNumPlanes++;
       }
@@ -234,7 +234,7 @@ int CLinuxV4l2::QueueBuffer(int device, enum v4l2_buf_type type, enum v4l2_memor
         vplanes[i].m.userptr = (unsigned long)buffer->cPlane[i];
         break;
       case V4L2_MEMORY_MMAP:
-        vplanes[i].m.mem_offset = buffer->mem_offset[i];
+        vplanes[i].m.mem_offset = buffer->iOffset[i];
         break;
     }
     vplanes[i].length      = buffer->iSize[i];

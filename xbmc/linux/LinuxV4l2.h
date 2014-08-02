@@ -43,7 +43,6 @@ typedef struct V4L2Buffer
   int   iOffset[V4L2_NUM_MAX_PLANES];
   int   iBytesUsed[V4L2_NUM_MAX_PLANES];
   void  *cPlane[V4L2_NUM_MAX_PLANES];
-  __u32 mem_offset[V4L2_NUM_MAX_PLANES];
   int   iNumPlanes;
   int   iIndex;
   bool  bQueue;
