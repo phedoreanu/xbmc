@@ -57,8 +57,6 @@ public:
 
   virtual bool  ShowWindow(bool show);
 
-  virtual void  WaitForVsync();
-
 protected:
   int m_iFBHandle;
   int width;

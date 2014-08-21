@@ -87,7 +87,10 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
 
   // Try to create each backend in sequence and go with the first one
   // that we know will work
-  if (
+  if ((nativeGuess = CreateEGLNativeType<CEGLNativeTypeWayland>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation)) ||
 #ifdef HAS_HYBRIS
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
 #endif
@@ -383,7 +386,6 @@ bool CEGLWrapper::SetVSync(EGLDisplay display, bool enable)
   // depending how buffers are setup, eglSwapInterval
   // might fail so let caller decide if this is an error.
   enable = true; // Very dirty fix for vsync
-  m_nativeTypes->WaitForVsync();
   status = eglSwapInterval(display, enable ? 1 : 0);
   CheckError();
   return status;

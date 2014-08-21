@@ -46,5 +46,4 @@ public:
   virtual bool  ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions);
   virtual bool  GetPreferredResolution(RESOLUTION_INFO *res) const;
   virtual bool  ShowWindow(bool show);
-  virtual void  WaitForVsync();
 };

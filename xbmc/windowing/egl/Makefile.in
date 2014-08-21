@@ -1,6 +1,10 @@
 INCLUDES=-I.
 
 SRCS = WinSystemEGL.cpp
+SRCS+= EGLNativeTypeAmlogic.cpp
+SRCS+= EGLNativeTypeAndroid.cpp
+SRCS+= EGLNativeTypeRaspberryPI.cpp
+SRCS+= EGLNativeTypeWayland.cpp
 ifeq (@USE_HYBRIS@,1)
 SRCS+= EGLNativeTypeHybris.cpp
 endif

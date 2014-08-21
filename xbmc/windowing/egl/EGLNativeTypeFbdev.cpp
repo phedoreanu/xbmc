@@ -101,11 +101,6 @@ void CEGLNativeTypeFbdev::Destroy()
   return;
 }
 
-void CEGLNativeTypeFbdev::WaitForVsync()
-{
-  ioctl(m_iFBHandle, FBIO_WAITFORVSYNC, 0);
-}
-
 bool CEGLNativeTypeFbdev::CreateNativeDisplay()
 {
   printf("%s::%s \n", CLASSNAME, __func__);
