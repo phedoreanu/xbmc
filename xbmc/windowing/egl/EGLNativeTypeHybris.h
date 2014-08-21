@@ -71,6 +71,7 @@ public:
   virtual bool  GetPreferredResolution(RESOLUTION_INFO *res) const;
 
   virtual bool  ShowWindow(bool show);
+  virtual void  WaitForVsync();
   void SwapSurface(EGLDisplay display, EGLSurface surface);
 #if defined(TARGET_HYBRIS)
 private:

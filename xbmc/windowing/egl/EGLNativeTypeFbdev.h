@@ -23,12 +23,12 @@
 #include "EGLNativeType.h"
 #include <list>
 
-class CEGLNativeTypeOdroid : public CEGLNativeType
+class CEGLNativeTypeFbdev : public CEGLNativeType
 {
 public:
-  CEGLNativeTypeOdroid();
-  virtual ~CEGLNativeTypeOdroid();
-  virtual std::string GetNativeName() const { return "odroid"; };
+  CEGLNativeTypeFbdev();
+  virtual ~CEGLNativeTypeFbdev();
+  virtual std::string GetNativeName() const { return "exynos"; };
   virtual bool  CheckCompatibility();
   virtual void  Initialize();
   virtual void  Destroy();
@@ -41,10 +41,18 @@ public:
 
   virtual bool  DestroyNativeWindow();
   virtual bool  DestroyNativeDisplay();
+
   virtual bool  GetNativeResolution(RESOLUTION_INFO *res) const;
   virtual bool  SetNativeResolution(const RESOLUTION_INFO &res);
   virtual bool  ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions);
   virtual bool  GetPreferredResolution(RESOLUTION_INFO *res) const;
+
   virtual bool  ShowWindow(bool show);
+
   virtual void  WaitForVsync();
+
+protected:
+  int m_iFBHandle;
+  int width;
+  int height;
 };

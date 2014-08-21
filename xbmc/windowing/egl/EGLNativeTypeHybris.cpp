@@ -335,3 +335,7 @@ bool CEGLNativeTypeHybris::ShowWindow(bool show)
 void CEGLNativeTypeHybris::SwapSurface(EGLDisplay display, EGLSurface surface)
 {
 }
+
+void CEGLNativeTypeFbdev::WaitForVsync()
+{
+}

@@ -143,6 +143,8 @@ public:
     framebuffer */
   virtual bool  ShowWindow(bool show) = 0;
 
+  virtual void  WaitForVsync() = 0;
+
 protected:
   XBNativeDisplayType  m_nativeDisplay;
   XBNativeWindowType   m_nativeWindow;

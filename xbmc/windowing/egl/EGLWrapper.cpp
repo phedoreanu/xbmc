@@ -32,6 +32,7 @@
 #ifdef HAS_ODROIDGLES
 #include "EGLNativeTypeOdroid.h"
 #endif
+#include "EGLNativeTypeFbdev.h"
 #include "EGLNativeTypeWayland.h"
 #include "EGLWrapper.h"
 
@@ -86,17 +87,14 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
 
   // Try to create each backend in sequence and go with the first one
   // that we know will work
-  if ((nativeGuess = CreateEGLNativeType<CEGLNativeTypeWayland>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation))
+  if (
 #ifdef HAS_HYBRIS
-      || (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
 #endif
 #ifdef HAS_ODROIDGLES
-      || (nativeGuess = CreateEGLNativeType<CEGLNativeTypeOdroid>(implementation))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeOdroid>(implementation)) ||
 #endif
-      )
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeFbdev>(implementation)))
   {
     m_nativeTypes = nativeGuess;
 
@@ -385,6 +383,7 @@ bool CEGLWrapper::SetVSync(EGLDisplay display, bool enable)
   // depending how buffers are setup, eglSwapInterval
   // might fail so let caller decide if this is an error.
   enable = true; // Very dirty fix for vsync
+  m_nativeTypes->WaitForVsync();
   status = eglSwapInterval(display, enable ? 1 : 0);
   CheckError();
   return status;
