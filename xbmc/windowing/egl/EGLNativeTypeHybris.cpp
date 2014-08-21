@@ -31,6 +31,41 @@
 
 #include "utils/StringUtils.h"
 
+HWComposer::HWComposer(unsigned int width,
+                      unsigned int height,
+                      unsigned int format,
+                      hwc_composer_device_1_t *device,
+                      hwc_display_contents_1_t **mList,
+                      hwc_layer_1_t *layer)
+                      : HWComposerNativeWindow(width, height, format)
+{
+    fblayer = layer;
+    hwcdevice = device;
+    mlist = mList;
+}
+
+void HWComposer::present(HWComposerNativeWindowBuffer *buffer)
+{
+    int oldretire = mlist[0]->retireFenceFd;
+    mlist[0]->retireFenceFd = -1;
+    fblayer->handle = buffer->handle;
+    fblayer->acquireFenceFd = getFenceBufferFd(buffer);
+    fblayer->releaseFenceFd = -1;
+    int err = hwcdevice->prepare(hwcdevice, HWC_NUM_DISPLAY_TYPES, mlist);
+    assert(err == 0);
+
+    err = hwcdevice->set(hwcdevice, HWC_NUM_DISPLAY_TYPES, mlist);
+    assert(err == 0);
+    setFenceBufferFd(buffer, fblayer->releaseFenceFd);
+
+    if (oldretire != -1)
+    {
+        sync_wait(oldretire, -1);
+        close(oldretire);
+    }
+}
+
+/*
 CEvent displayEvent;
 CEvent paintEvent;
 
@@ -54,6 +89,7 @@ void CHybrisVideoRenderer::Process()
 //  m_clock = 0;
 //  m_lastTime = XbmcThreads::SystemClockMillis();
   printf("We started!\n");
+
   while (!m_bStop)
   {
   HWComposerNativeWindow* window = (HWComposerNativeWindow*)m_hwNativeWindow;
@@ -70,7 +106,8 @@ void CHybrisVideoRenderer::Process()
     }
   }
   else {
-    /*if(!handle)*/ handle = front->handle;
+    //if(!handle)
+    handle = front->handle;
   }
 //  printf("Front handle %u\n", handle);
   m_bufferList[0]->hwLayers[0].handle = handle;
@@ -113,9 +150,9 @@ void CHybrisVideoRenderer::Process()
     sync_wait(oldretire, -1);
     close(oldretire);
   }
-
   }
 }
+*/
 
 CEGLNativeTypeHybris::CEGLNativeTypeHybris()
 #if defined(TARGET_HYBRIS)
@@ -132,7 +169,7 @@ CEGLNativeTypeHybris::CEGLNativeTypeHybris()
 
 CEGLNativeTypeHybris::~CEGLNativeTypeHybris()
 {
-} 
+}
 
 bool CEGLNativeTypeHybris::CheckCompatibility()
 {
@@ -177,16 +214,10 @@ bool CEGLNativeTypeHybris::CreateNativeWindow()
   if (!GetNativeResolution(&res))
     return false;
 
-  m_hwNativeWindow = new HWComposerNativeWindow(res.iWidth, res.iHeight, HAL_PIXEL_FORMAT_RGBA_8888);
-  if (m_hwNativeWindow == NULL)
-  {
-    CLog::Log(LOGERROR, "HWComposer native window failed!");
-    return false;
-  }
-  m_swNativeWindow = (static_cast<ANativeWindow *> (m_hwNativeWindow));
+//  m_hwNativeWindow = new HWComposerNativeWindow(res.iWidth, res.iHeight, HAL_PIXEL_FORMAT_RGBA_8888);
 
   size_t size = sizeof(hwc_display_contents_1_t) + 2 * sizeof(hwc_layer_1_t);
-  
+
   hwc_display_contents_1_t *list = (hwc_display_contents_1_t *) malloc(size);
   m_bufferList = (hwc_display_contents_1_t **) malloc(HWC_NUM_DISPLAY_TYPES * sizeof(hwc_display_contents_1_t *));
   const hwc_rect_t r = { 0, 0, res.iWidth, res.iHeight };
@@ -226,10 +257,20 @@ bool CEGLNativeTypeHybris::CreateNativeWindow()
 
   list->retireFenceFd = -1;
   list->flags = HWC_GEOMETRY_CHANGED;
-  list->numHwLayers = 1;
+  list->numHwLayers = 2;
+
+  m_hwNativeWindow = new HWComposer(res.iWidth, res.iHeight, HAL_PIXEL_FORMAT_RGBA_8888, m_hwcDevicePtr, m_bufferList, &list->hwLayers[1]);
+  if (m_hwNativeWindow == NULL)
+  {
+    CLog::Log(LOGERROR, "HWComposer native window failed!");
+    return false;
+  }
+  m_swNativeWindow = (static_cast<ANativeWindow *> (m_hwNativeWindow));
+/*
   m_videoRenderThread = new CHybrisVideoRenderer(m_bufferList, m_hwcDevicePtr,
     m_hwNativeWindow);
   m_videoRenderThread->Create(true, THREAD_MINSTACKSIZE);
+*/
   return true;
 #else
   return false;
@@ -330,12 +371,8 @@ bool CEGLNativeTypeHybris::GetPreferredResolution(RESOLUTION_INFO *res) const
 bool CEGLNativeTypeHybris::ShowWindow(bool show)
 {
   return true;
-} 
-
-void CEGLNativeTypeHybris::SwapSurface(EGLDisplay display, EGLSurface surface)
-{
 }
 
-void CEGLNativeTypeHybris::WaitForVsync()
+void CEGLNativeTypeHybris::SwapSurface(EGLDisplay display, EGLSurface surface)
 {
 }
