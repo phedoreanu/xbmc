@@ -41,7 +41,7 @@ CEGLNativeTypeFbdev::CEGLNativeTypeFbdev()
     m_iFBHandle = -1;
     m_nativeWindow  = NULL;
     m_nativeDisplay = NULL;
-    
+
     m_iFBHandle = open("/dev/fb0", O_RDWR, 0);
     if(m_iFBHandle < 0)
     {
@@ -228,7 +228,13 @@ bool CEGLNativeTypeFbdev::SetNativeResolution(const RESOLUTION_INFO &res)
 bool CEGLNativeTypeFbdev::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions)
 {
   printf("%s::%s \n", CLASSNAME, __func__);
-  return true;
+  RESOLUTION_INFO res;
+  if (GetNativeResolution(&res) && res.iWidth > 1 && res.iHeight > 1)
+  {
+    resolutions.push_back(res);
+    return true;
+  }
+  return false;
 }
 
 bool CEGLNativeTypeFbdev::GetPreferredResolution(RESOLUTION_INFO *res) const
