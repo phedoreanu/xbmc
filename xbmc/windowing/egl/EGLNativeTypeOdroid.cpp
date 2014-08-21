@@ -248,6 +248,6 @@ bool CEGLNativeTypeOdroid::ShowWindow(bool show)
     return false;
 }
 
-void CEGLNativeTypeFbdev::WaitForVsync()
+void CEGLNativeTypeOdroid::WaitForVsync()
 {
 }

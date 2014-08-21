@@ -336,6 +336,6 @@ void CEGLNativeTypeHybris::SwapSurface(EGLDisplay display, EGLSurface surface)
 {
 }
 
-void CEGLNativeTypeFbdev::WaitForVsync()
+void CEGLNativeTypeHybris::WaitForVsync()
 {
 }
