@@ -18,7 +18,6 @@
  *
  */
 #include <EGL/egl.h>
-#include <EGL/fbdev_window.h>
 #include "EGLNativeTypeFbdev.h"
 #include "utils/log.h"
 #include <stdlib.h>
@@ -116,16 +115,15 @@ bool CEGLNativeTypeFbdev::CreateNativeDisplay()
 
 bool CEGLNativeTypeFbdev::CreateNativeWindow()
 {
-  printf("%s::%s \n", CLASSNAME, __func__);
+    printf("%s::%s \n", CLASSNAME, __func__);
+    fbdev_window *nativeWindow = new fbdev_window;
+    if (!nativeWindow)
+        return false;
 
-  fbdev_window *nativeWindow = new fbdev_window;
-  if (!nativeWindow)
-    return false;
-
-  nativeWindow->width = width;
-  nativeWindow->height = height;
-  m_nativeWindow = nativeWindow;
-  return true;
+    nativeWindow->width = width;
+    nativeWindow->height = height;
+    m_nativeWindow = nativeWindow;
+    return true;
 }
 
 bool CEGLNativeTypeFbdev::GetNativeDisplay(XBNativeDisplayType **nativeDisplay) const

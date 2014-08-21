@@ -23,6 +23,14 @@
 #include "EGLNativeType.h"
 #include <list>
 
+// Define it right here, since some platforms doesn't has fbdev_window.h at all.
+// This will not make fail on these platforms badly, since it will fail anyway on some other init steps.
+typedef struct fbdev_window
+{
+        unsigned short width;
+        unsigned short height;
+} fbdev_window;
+
 class CEGLNativeTypeFbdev : public CEGLNativeType
 {
 public:
