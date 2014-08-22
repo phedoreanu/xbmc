@@ -217,18 +217,18 @@ bool CEGLNativeTypeHybris::CreateNativeWindow()
 //  m_hwNativeWindow = new HWComposerNativeWindow(res.iWidth, res.iHeight, HAL_PIXEL_FORMAT_RGBA_8888);
 
   size_t size = sizeof(hwc_display_contents_1_t) + 2 * sizeof(hwc_layer_1_t);
-
   hwc_display_contents_1_t *list = (hwc_display_contents_1_t *) malloc(size);
   m_bufferList = (hwc_display_contents_1_t **) malloc(HWC_NUM_DISPLAY_TYPES * sizeof(hwc_display_contents_1_t *));
   const hwc_rect_t r = { 0, 0, res.iWidth, res.iHeight };
-  int counter = 0;
-//  for (; counter < HWC_NUM_DISPLAY_TYPES; counter++)
-  m_bufferList[0] = list;
-  m_bufferList[1] = NULL;
 
-  hwc_layer_1_t *layer = &list->hwLayers[0];
+  for (int counter = 0; counter < HWC_NUM_DISPLAY_TYPES; counter++)
+    m_bufferList[counter] = list;
+
+  hwc_layer_1_t *layer;
+
+  layer = &list->hwLayers[0];
   memset(layer, 0, sizeof(hwc_layer_1_t));
-  layer->compositionType = HWC_FRAMEBUFFER_TARGET;
+  layer->compositionType = HWC_FRAMEBUFFER;
   layer->hints = 0;
   layer->flags = 0;
   layer->handle = 0;
@@ -240,6 +240,7 @@ bool CEGLNativeTypeHybris::CreateNativeWindow()
   layer->visibleRegionScreen.rects = &layer->displayFrame;
   layer->acquireFenceFd = -1;
   layer->releaseFenceFd = -1;
+
   layer = &list->hwLayers[1];
   memset(layer, 0, sizeof(hwc_layer_1_t));
   layer->compositionType = HWC_FRAMEBUFFER_TARGET;
