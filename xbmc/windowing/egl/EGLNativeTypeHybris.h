@@ -41,24 +41,8 @@ class HWComposer : public HWComposerNativeWindow
     void present(HWComposerNativeWindowBuffer *buffer);
   public:
     HWComposer(unsigned int width, unsigned int height, unsigned int format, hwc_composer_device_1_t *device, hwc_display_contents_1_t **mList, hwc_layer_1_t *layer);
-    void set();
 };
-/*
-class CHybrisVideoRenderer : public CThread
-{
-public:
-  CHybrisVideoRenderer(hwc_display_contents_1_t **bufferList,
-    hwc_composer_device_1_t *hwcDevicePtr,
-    HWComposerNativeWindow *nativeWindow);
-  virtual ~CHybrisVideoRenderer();
-private:
-  hwc_display_contents_1_t   **m_bufferList;
-  hwc_composer_device_1_t    *m_hwcDevicePtr;
-  HWComposerNativeWindow     *m_hwNativeWindow;
-protected:
-  void Process();
-};
-*/
+
 class CEGLNativeTypeHybris : public CEGLNativeType
 {
 public:
@@ -93,5 +77,4 @@ private:
   HWComposerNativeWindow     *m_hwNativeWindow;
   ANativeWindow              *m_swNativeWindow;
 #endif
-  //CHybrisVideoRenderer       *m_videoRenderThread;
 };
