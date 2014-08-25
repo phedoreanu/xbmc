@@ -1053,12 +1053,17 @@ void CXBMCRenderManager::PrepareNextRender()
   }
   idx = *curr;
 
+#if defined(TARGET_HYBRIS)
+  // Odroid libhybris vsync fix: we don't block at all
+  bool next = (m_Queue[idx].timestamp <= clocktime);
+#else
   /* in fullscreen we will block after render, but only for MAXPRESENTDELAY */
   bool next;
   if(g_graphicsContext.IsFullScreenVideo())
     next = (m_Queue[idx].timestamp <= clocktime + MAXPRESENTDELAY);
   else
     next = (m_Queue[idx].timestamp <= clocktime + frametime);
+#endif
 
   if (next)
   {
