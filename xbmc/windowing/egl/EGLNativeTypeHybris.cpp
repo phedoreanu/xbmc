@@ -258,9 +258,7 @@ bool CEGLNativeTypeHybris::SetNativeResolution(const RESOLUTION_INFO &res)
 bool CEGLNativeTypeHybris::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions)
 {
   RESOLUTION_INFO res;
-  bool ret = false;
-  ret = GetNativeResolution(&res);
-  if (ret && res.iWidth > 1 && res.iHeight > 1)
+  if (GetNativeResolution(&res) && res.iWidth > 1 && res.iHeight > 1)
   {
     resolutions.push_back(res);
     return true;
@@ -270,14 +268,12 @@ bool CEGLNativeTypeHybris::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolu
 
 bool CEGLNativeTypeHybris::GetPreferredResolution(RESOLUTION_INFO *res) const
 {
+  if (GetNativeResolution(res))
+    return true;
   return false;
 }
 
 bool CEGLNativeTypeHybris::ShowWindow(bool show)
 {
   return true;
-}
-
-void CEGLNativeTypeHybris::SwapSurface(EGLDisplay display, EGLSurface surface)
-{
 }

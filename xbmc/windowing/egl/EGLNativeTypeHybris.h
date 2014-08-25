@@ -29,8 +29,6 @@
 #include "EGLNativeType.h"
 #include "threads/Thread.h"
 
-class CEGLNativeTypeHybris;
-
 class HWComposer : public HWComposerNativeWindow
 {
   private:
@@ -68,7 +66,6 @@ public:
   virtual bool  GetPreferredResolution(RESOLUTION_INFO *res) const;
 
   virtual bool  ShowWindow(bool show);
-  void SwapSurface(EGLDisplay display, EGLSurface surface);
 #if defined(TARGET_HYBRIS)
 private:
   hw_module_t                *m_hwcModule;
