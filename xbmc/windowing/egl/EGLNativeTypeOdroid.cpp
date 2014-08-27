@@ -155,7 +155,7 @@ bool CEGLNativeTypeOdroid::CreateNativeWindow()
 
     XFlush(xDisplay);
 
-    m_nativeWindow = (EGLNativeWindowType) nativeWindow;
+    m_nativeWindow = (XBNativeWindowType) nativeWindow;
 
     if (!m_nativeWindow)
       return false;
