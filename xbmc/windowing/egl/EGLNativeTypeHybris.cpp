@@ -227,15 +227,15 @@ bool CEGLNativeTypeHybris::GetNativeResolution(RESOLUTION_INFO *res) const
       CLog::Log(LOGERROR, "getDisplayConfigs failed!");
       return false;
   }
-  int32_t attr_values[2];
-  uint32_t attributes[] = { HWC_DISPLAY_WIDTH, HWC_DISPLAY_HEIGHT, HWC_DISPLAY_NO_ATTRIBUTE };
+  int32_t attr_values[3];
+  uint32_t attributes[] = { HWC_DISPLAY_WIDTH, HWC_DISPLAY_HEIGHT, HWC_DISPLAY_VSYNC_PERIOD, HWC_DISPLAY_NO_ATTRIBUTE };
 
   m_hwcDevicePtr->getDisplayAttributes(m_hwcDevicePtr, 0, configs[0], attributes, attr_values);
 
-  res->iWidth = attr_values[0];
-  res->iHeight = attr_values[1];
+  res->iWidth        = attr_values[0];
+  res->iHeight       = attr_values[1];
+  res->fRefreshRate  = 1000000000 / attr_values[2];
 
-  res->fRefreshRate  = 60;
   res->dwFlags       = D3DPRESENTFLAG_PROGRESSIVE;
   res->iScreen       = 0;
   res->bFullScreen   = true;
