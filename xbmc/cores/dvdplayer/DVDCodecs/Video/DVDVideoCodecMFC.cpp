@@ -310,13 +310,6 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   }
   CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT <- %d header of size %d", CLASSNAME, __func__, ret, extraSize);
 
-  // STREAMON on MFC OUTPUT
-  if (!CLinuxV4l2::StreamOn(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, VIDIOC_STREAMON)) {
-    CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT Failed to Stream ON, errno %d", CLASSNAME, __func__, errno);
-    return false;
-  }
-  CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT Stream ON", CLASSNAME, __func__);
-
   // Setup MFC CAPTURE format
   if (m_iConverterHandle < 0) {
     memzero(fmt);
@@ -329,6 +322,14 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
     }
     CLog::Log(LOGDEBUG, "%s::%s - MFC CAPTURE S_FMT: fmt 0x%x", CLASSNAME, __func__, fmt.fmt.pix_mp.pixelformat);
   }
+
+  // STREAMON on MFC OUTPUT
+  if (!CLinuxV4l2::StreamOn(m_iDecoderHandle, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE, VIDIOC_STREAMON)) {
+    CLog::Log(LOGERROR, "%s::%s - MFC OUTPUT Failed to Stream ON, errno %d", CLASSNAME, __func__, errno);
+    return false;
+  }
+  CLog::Log(LOGDEBUG, "%s::%s - MFC OUTPUT Stream ON", CLASSNAME, __func__);
+
   // Get MFC CAPTURE picture format to check, and to setup FIMC converter if needed
   memzero(fmt);
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
