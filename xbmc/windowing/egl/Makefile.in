@@ -9,6 +9,7 @@ ifeq (@USE_HYBRIS@,1)
 SRCS+= EGLNativeTypeHybris.cpp
 endif
 SRCS+= EGLNativeTypeIMX.cpp
+SRCS+= EGLNativeTypeFbdev.cpp
 SRCS+= EGLWrapper.cpp
 
 # Wayland specific detail
