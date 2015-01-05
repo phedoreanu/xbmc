@@ -28,8 +28,8 @@
 // This will not make fail on these platforms badly, since it will fail anyway on some other init steps.
 typedef struct fbdev_window
 {
-        unsigned short width;
-        unsigned short height;
+  unsigned short width;
+  unsigned short height;
 } fbdev_window;
 #endif
 

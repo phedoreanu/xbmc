@@ -38,49 +38,39 @@
 
 CEGLNativeTypeFbdev::CEGLNativeTypeFbdev()
 {
-    m_iFBHandle = -1;
-    m_nativeWindow  = NULL;
-    m_nativeDisplay = NULL;
-
-    m_iFBHandle = open("/dev/fb0", O_RDWR, 0);
-    if(m_iFBHandle < 0)
-        CLog::Log(LOGERROR, "%s::%s open framebuffer device /dev/fb0\n", CLASSNAME, __func__);
-    else
-    {
-        struct fb_fix_screeninfo finfo;
-        if(ioctl(m_iFBHandle, FBIOGET_FSCREENINFO, &finfo) == -1)
-        {
-            CLog::Log(LOGERROR, "%s::%s FBIOGET_FSCREENINFO\n", CLASSNAME, __func__);
-            m_iFBHandle = -1;
-        }
-
-        struct fb_var_screeninfo info;
-        if(ioctl(m_iFBHandle, FBIOGET_VSCREENINFO, &info) == -1)
-        {
-            CLog::Log(LOGERROR, "%s::%s FBIOGET_VSCREENINFO\n", CLASSNAME, __func__);
-            m_iFBHandle = -1;
-        }
-        CLog::Log(LOGNOTICE, "%s::%s FBDev device: %d, info.xres %d info.yres %d info.upper_margin %d info.lower_margin %d info.pixclock %d\n",
-            CLASSNAME, __func__, m_iFBHandle, info.xres, info.yres, info.upper_margin, info.lower_margin, info.pixclock);
-
-        width = info.xres;
-        height = info.yres;
-    }
+  m_iFBHandle = -1;
+  m_nativeWindow  = NULL;
+  m_nativeDisplay = NULL;
 }
 
 CEGLNativeTypeFbdev::~CEGLNativeTypeFbdev()
 {
-    if (m_nativeWindow)
-        free(m_nativeWindow);
+  if (m_nativeWindow)
+    free(m_nativeWindow);
 
-    if(m_iFBHandle >= 0)
-        close(m_iFBHandle);
+  if(m_iFBHandle >= 0)
+  {
+    close(m_iFBHandle);
+    m_iFBHandle = -1;
+  }
 }
 
 bool CEGLNativeTypeFbdev::CheckCompatibility()
 {
-  if (m_iFBHandle < 0)
+  m_iFBHandle = open("/dev/fb0", O_RDWR, 0);
+  if(m_iFBHandle < 0)
     return false;
+
+  struct fb_var_screeninfo info;
+  if(ioctl(m_iFBHandle, FBIOGET_VSCREENINFO, &info) == -1)
+    return false;
+
+  CLog::Log(LOGNOTICE, "%s::%s FBDev device: %d, info.xres %d info.yres %d info.upper_margin %d info.lower_margin %d info.pixclock %d",
+    CLASSNAME, __func__, m_iFBHandle, info.xres, info.yres, info.upper_margin, info.lower_margin, info.pixclock);
+
+  width = info.xres;
+  height = info.yres;
+
   return true;
 }
 
@@ -101,14 +91,14 @@ bool CEGLNativeTypeFbdev::CreateNativeDisplay()
 
 bool CEGLNativeTypeFbdev::CreateNativeWindow()
 {
-    fbdev_window *nativeWindow = new fbdev_window;
-    if (!nativeWindow)
-        return false;
+  fbdev_window *nativeWindow = new fbdev_window;
+  if (!nativeWindow)
+    return false;
 
-    nativeWindow->width = width;
-    nativeWindow->height = height;
-    m_nativeWindow = nativeWindow;
-    return true;
+  nativeWindow->width = width;
+  nativeWindow->height = height;
+  m_nativeWindow = nativeWindow;
+  return true;
 }
 
 bool CEGLNativeTypeFbdev::GetNativeDisplay(XBNativeDisplayType **nativeDisplay) const
@@ -160,9 +150,7 @@ bool CEGLNativeTypeFbdev::SetNativeResolution(const RESOLUTION_INFO &res)
 {
   struct fb_var_screeninfo info;
   if(ioctl(m_iFBHandle, FBIOGET_VSCREENINFO, &info) == -1)
-  {
-    CLog::Log(LOGERROR, "%s::%s FBIOGET_VSCREENINFO\n", CLASSNAME, __func__);
-  }
+    CLog::Log(LOGERROR, "%s::%s FBIOGET_VSCREENINFO unexpected error", CLASSNAME, __func__);
 
   info.reserved[0] = 0;
   info.reserved[1] = 0;
@@ -185,23 +173,21 @@ bool CEGLNativeTypeFbdev::SetNativeResolution(const RESOLUTION_INFO &res)
   info.yres = res.iScreenHeight;
 
   info.yres_virtual = info.yres * 2;
-  //info.yres_virtual = info.yres;
 
   if (ioctl(m_iFBHandle, FBIOPUT_VSCREENINFO, &info) == -1)
   {
-    info.yres_virtual = info.yres;
-    CLog::Log(LOGERROR, "%s::%s - FBIOPUT_VSCREENINFO\n", CLASSNAME, __func__);
+//    info.yres_virtual = info.yres;
+    CLog::Log(LOGERROR, "%s::%s - FBIOPUT_VSCREENINFO error", CLASSNAME, __func__);
     return false;
   }
 
   if (ioctl(m_iFBHandle, FBIOPAN_DISPLAY, &info) == -1)
   {
-    CLog::Log(LOGERROR, "%s::%s - FBIOPAN_DISPLAY\n", CLASSNAME, __func__);
+    CLog::Log(LOGERROR, "%s::%s - FBIOPAN_DISPLAY error", CLASSNAME, __func__);
     return false;
   }
 
-  CLog::Log(LOGNOTICE, "%s::%s width %d height %d refresh %f\n", CLASSNAME, __func__,
-    res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
+  CLog::Log(LOGNOTICE, "%s::%s width %d height %d refresh %f", CLASSNAME, __func__, res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
 
   return true;
 }
