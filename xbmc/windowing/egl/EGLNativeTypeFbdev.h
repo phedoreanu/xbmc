@@ -21,6 +21,7 @@
  */
 
 #include "EGLNativeType.h"
+#include <linux/fb.h>
 #include <list>
 
 #ifndef _FBDEV_WINDOW_H_
@@ -61,6 +62,6 @@ public:
 
 protected:
   int m_iFBHandle;
-  int width;
-  int height;
+  fb_var_screeninfo *vinfo;
+  fb_fix_screeninfo *finfo;
 };

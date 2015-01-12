@@ -48,6 +48,11 @@ CEGLNativeTypeFbdev::~CEGLNativeTypeFbdev()
   if (m_nativeWindow)
     free(m_nativeWindow);
 
+  if (vinfo)
+    free(vinfo);
+  if (finfo)
+    free(finfo);
+
   if(m_iFBHandle >= 0)
   {
     close(m_iFBHandle);
@@ -61,15 +66,16 @@ bool CEGLNativeTypeFbdev::CheckCompatibility()
   if(m_iFBHandle < 0)
     return false;
 
-  struct fb_var_screeninfo info;
-  if(ioctl(m_iFBHandle, FBIOGET_VSCREENINFO, &info) == -1)
+  vinfo = new fb_var_screeninfo();
+  if(ioctl(m_iFBHandle, FBIOGET_VSCREENINFO, vinfo) == -1)
     return false;
 
   CLog::Log(LOGNOTICE, "%s::%s FBDev device: %d, info.xres %d info.yres %d info.upper_margin %d info.lower_margin %d info.pixclock %d",
-    CLASSNAME, __func__, m_iFBHandle, info.xres, info.yres, info.upper_margin, info.lower_margin, info.pixclock);
+    CLASSNAME, __func__, m_iFBHandle, vinfo->xres, vinfo->yres, vinfo->upper_margin, vinfo->lower_margin, vinfo->pixclock);
 
-  width = info.xres;
-  height = info.yres;
+  finfo = new fb_fix_screeninfo();
+  if(ioctl(m_iFBHandle, FBIOGET_FSCREENINFO, finfo) == -1)
+    return false;
 
   return true;
 }
@@ -95,8 +101,8 @@ bool CEGLNativeTypeFbdev::CreateNativeWindow()
   if (!nativeWindow)
     return false;
 
-  nativeWindow->width = width;
-  nativeWindow->height = height;
+  nativeWindow->width = vinfo->xres;
+  nativeWindow->height = vinfo->yres;
   m_nativeWindow = nativeWindow;
   return true;
 }
@@ -130,8 +136,8 @@ bool CEGLNativeTypeFbdev::DestroyNativeWindow()
 
 bool CEGLNativeTypeFbdev::GetNativeResolution(RESOLUTION_INFO *res) const
 {
-  res->iWidth = width;
-  res->iHeight = height;
+  res->iWidth = vinfo->xres;
+  res->iHeight = vinfo->yres;
   res->fRefreshRate = 60;
   res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   res->iScreen = 0;
@@ -148,40 +154,15 @@ bool CEGLNativeTypeFbdev::GetNativeResolution(RESOLUTION_INFO *res) const
 
 bool CEGLNativeTypeFbdev::SetNativeResolution(const RESOLUTION_INFO &res)
 {
-  struct fb_var_screeninfo info;
-  if(ioctl(m_iFBHandle, FBIOGET_VSCREENINFO, &info) == -1)
-    CLog::Log(LOGERROR, "%s::%s FBIOGET_VSCREENINFO unexpected error", CLASSNAME, __func__);
 
-  info.reserved[0] = 0;
-  info.reserved[1] = 0;
-  info.reserved[2] = 0;
-  info.xoffset = 0;
-  info.yoffset = 0;
-  info.activate = FB_ACTIVATE_NOW;
+  vinfo->activate = FB_ACTIVATE_NOW;
 
-  info.bits_per_pixel = 32;
-  info.red.offset     = 16;
-  info.red.length     = 8;
-  info.green.offset   = 8;
-  info.green.length   = 8;
-  info.blue.offset    = 0;
-  info.blue.length    = 8;
-  info.transp.offset  = 0;
-  info.transp.length  = 0;
-
-  info.xres = res.iScreenWidth;
-  info.yres = res.iScreenHeight;
-
-  info.yres_virtual = info.yres * 2;
-
-  if (ioctl(m_iFBHandle, FBIOPUT_VSCREENINFO, &info) == -1)
+  if (ioctl(m_iFBHandle, FBIOPUT_VSCREENINFO, vinfo) == -1)
   {
-//    info.yres_virtual = info.yres;
     CLog::Log(LOGERROR, "%s::%s - FBIOPUT_VSCREENINFO error", CLASSNAME, __func__);
     return false;
   }
-
-  if (ioctl(m_iFBHandle, FBIOPAN_DISPLAY, &info) == -1)
+  if (ioctl(m_iFBHandle, FBIOPAN_DISPLAY, vinfo) == -1)
   {
     CLog::Log(LOGERROR, "%s::%s - FBIOPAN_DISPLAY error", CLASSNAME, __func__);
     return false;
