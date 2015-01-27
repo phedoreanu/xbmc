@@ -42,6 +42,8 @@ CDVDVideoCodecMFC::CDVDVideoCodecMFC() : CDVDVideoCodec() {
   m_Buffer = NULL;
   m_BufferNowOnScreen = NULL;
 
+  memzero(m_videoBuffer);
+
 }
 
 CDVDVideoCodecMFC::~CDVDVideoCodecMFC() {
@@ -52,9 +54,9 @@ CDVDVideoCodecMFC::~CDVDVideoCodecMFC() {
 
 bool CDVDVideoCodecMFC::OpenDevices() {
   DIR *dir;
-  struct dirent *ent;
 
   if ((dir = opendir ("/sys/class/video4linux/")) != NULL) {
+    struct dirent *ent;
     while ((ent = readdir (dir)) != NULL) {
       if (strncmp(ent->d_name, "video", 5) == 0) {
         char *p;
@@ -79,7 +81,7 @@ bool CDVDVideoCodecMFC::OpenDevices() {
         }
         fclose(fp);
 
-        ret = readlink(sysname, target, sizeof(target)); 
+        ret = readlink(sysname, target, sizeof(target));
         if (ret < 0)
           continue;
         target[ret] = '\0';
