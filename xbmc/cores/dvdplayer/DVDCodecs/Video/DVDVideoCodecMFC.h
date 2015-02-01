@@ -1,9 +1,14 @@
 #pragma once
 
-#include "DVDVideoCodec.h"
-#include "DVDStreamInfo.h"
-#include "utils/BitstreamConverter.h"
-#include "xbmc/linux/LinuxV4l2Sink.h"
+#ifndef THIS_IS_NOT_XBMC
+  #include "DVDVideoCodec.h"
+  #include "DVDStreamInfo.h"
+  #include "utils/BitstreamConverter.h"
+  #include "xbmc/linux/LinuxV4l2Sink.h"
+#else
+  #include "xbmcstubs.h"
+  #include "LinuxV4l2Sink.h"
+#endif
 
 #ifndef V4L2_CAP_VIDEO_M2M_MPLANE
   #define V4L2_CAP_VIDEO_M2M_MPLANE 0x00004000
