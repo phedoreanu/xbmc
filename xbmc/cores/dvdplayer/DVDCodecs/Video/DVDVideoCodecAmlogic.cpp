@@ -110,9 +110,6 @@ bool CDVDVideoCodecAmlogic::Open(CDVDStreamInfo &hints, CDVDCodecOptions &option
       // amcodec can't handle h263
       return false;
       break;
-    case AV_CODEC_ID_FLV1:
-      m_pFormatName = "am-flv1";
-      break;
     case AV_CODEC_ID_RV10:
     case AV_CODEC_ID_RV20:
     case AV_CODEC_ID_RV30:
@@ -347,7 +344,7 @@ void CDVDVideoCodecAmlogic::FrameQueuePush(double dts, double pts)
     }
   }
   m_queue_depth++;
-  pthread_mutex_unlock(&m_queue_mutex);	
+  pthread_mutex_unlock(&m_queue_mutex);
 }
 
 void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double dts, double pts)
@@ -428,7 +425,7 @@ void CDVDVideoCodecAmlogic::FrameRateTracking(uint8_t *pData, int iSize, double 
     if (cur_pts == DVD_NOPTS_VALUE)
       cur_pts = m_frame_queue->dts;
 
-    pthread_mutex_unlock(&m_queue_mutex);	
+    pthread_mutex_unlock(&m_queue_mutex);
 
     float duration = cur_pts - m_last_pts;
     m_last_pts = cur_pts;
