@@ -87,8 +87,11 @@ bool CEGLNativeTypeAmlogic::CreateNativeWindow()
   if (!nativeWindow)
     return false;
 
-  nativeWindow->width = 1280;
-  nativeWindow->height = 720;
+  RESOLUTION_INFO res;
+  GetNativeResolution(&res);
+
+  nativeWindow->width = res.iWidth;
+  nativeWindow->height = res.iHeight;
   m_nativeWindow = nativeWindow;
   return true;
 #else
