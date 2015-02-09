@@ -49,10 +49,9 @@ public:
 
 protected:
   bool SetDisplayResolution(const char *resolution);
-  void SetupVideoScaling(const char *mode);
-  void EnableFreeScale();
   void DisableFreeScale();
 
 private:
   std::string m_framebuffer_name;
+  bool IsHdmiConnected() const;
 };
