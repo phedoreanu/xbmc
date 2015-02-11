@@ -337,6 +337,24 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 60;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
+  else if (fromMode.Equals("720p23.98hz")) // fake resolutions
+  {
+    res->iWidth = 1280;
+    res->iHeight= 720;
+    res->iScreenWidth = 1280;
+    res->iScreenHeight= 720;
+    res->fRefreshRate = 23.98;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
+  else if (fromMode.Equals("720p25hz")) // fake resolution
+  {
+    res->iWidth = 1280;
+    res->iHeight= 720;
+    res->iScreenWidth = 1280;
+    res->iScreenHeight= 720;
+    res->fRefreshRate = 25;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
   else if (fromMode.Equals("720p50hz"))
   {
     res->iWidth = 1280;
@@ -355,6 +373,15 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 60;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
+  else if (fromMode.Equals("1080p23.98hz")) // fake resolution
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 1920;
+    res->iScreenHeight= 1080;
+    res->fRefreshRate = 23.98;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
   else if (fromMode.Equals("1080p24hz"))
   {
     res->iWidth = 1920;
@@ -362,6 +389,15 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->iScreenWidth = 1920;
     res->iScreenHeight= 1080;
     res->fRefreshRate = 24;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
+  else if (fromMode.Equals("1080p25hz")) // fake resolution
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 1920;
+    res->iScreenHeight= 1080;
+    res->fRefreshRate = 25;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
   else if (fromMode.Equals("1080p30hz"))
