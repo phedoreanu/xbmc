@@ -152,7 +152,7 @@ bool CEGLNativeTypeAmlogic::GetNativeResolution(RESOLUTION_INFO *res) const
 
 bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
 {
-  CLog::Log(LOGDEBUG, "%s::%s to %dx%d@%f", CLASSNAME, __func__, res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
+  CLog::Log(LOGNOTICE, "%s::%s to %dx%d@%f", CLASSNAME, __func__, res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
   switch((int)res.fRefreshRate) // floor the resolution, so 23.98 will be brought down to 23
   {
     case 24:
@@ -200,7 +200,7 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
 
 bool CEGLNativeTypeAmlogic::SetDisplayResolution(const char *resolution)
 {
-  CLog::Log(LOGDEBUG, "%s::%s to %s", CLASSNAME, __func__, resolution);
+  CLog::Log(LOGNOTICE, "%s::%s to %s", CLASSNAME, __func__, resolution);
   CStdString mode = resolution;
   // switch display resolution
   aml_set_sysfs_str("/sys/class/display/mode", mode.c_str());
@@ -237,28 +237,19 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   char valstr[256] = {0};
   aml_get_sysfs_str("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr, 255);
   std::vector<std::string> probe_str;
-  if (strstr(valstr, "null edid") == NULL) {
-    CLog::Log(LOGDEBUG, "%s::%s edid read, adding resolutions", CLASSNAME, __func__);
-    probe_str = StringUtils::Split(valstr, "\n");
-    probe_str.push_back("720p23.98hz"); // fake resolutions, there is no action on rate request change for this
-    probe_str.push_back("1080p23.98hz");
-  } else {
-    CLog::Log(LOGDEBUG, "%s::%s null edid, adding all supported resolutions", CLASSNAME, __func__);
-    probe_str.push_back("720p23.98hz");
-    probe_str.push_back("720p25hz");
-    probe_str.push_back("720p50hz");
-    probe_str.push_back("720p");
-    probe_str.push_back("1080p23.98hz");
-    probe_str.push_back("1080p24hz");
-    probe_str.push_back("1080p25hz");
-    probe_str.push_back("1080p30hz");
-    probe_str.push_back("1080p50hz");
-    probe_str.push_back("1080p");
-    probe_str.push_back("1080i50hz");
-    probe_str.push_back("1080i");
-  }
+  probe_str.push_back("720p23.98hz");
+  probe_str.push_back("720p25hz");
+  probe_str.push_back("720p50hz");
+  probe_str.push_back("720p");
+  probe_str.push_back("1080p23.98hz");
+  probe_str.push_back("1080p24hz");
+  probe_str.push_back("1080p25hz");
+  probe_str.push_back("1080p30hz");
+  probe_str.push_back("1080p50hz");
+  probe_str.push_back("1080p");
+  probe_str.push_back("1080i50hz");
+  probe_str.push_back("1080i");
 
-  CLog::Log(LOGDEBUG, "%s::%s probing %d resolutions", CLASSNAME, __func__, probe_str.size());
   resolutions.clear();
   RESOLUTION_INFO res;
   for (std::vector<std::string>::const_iterator i = probe_str.begin(); i != probe_str.end(); ++i)
@@ -266,7 +257,6 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
     if(aml_mode_to_resolution(i->c_str(), &res))
       resolutions.push_back(res);
   }
-  CLog::Log(LOGDEBUG, "%s::%s %d resolutions probed", CLASSNAME, __func__, resolutions.size());
   return resolutions.size() > 0;
 }
 
