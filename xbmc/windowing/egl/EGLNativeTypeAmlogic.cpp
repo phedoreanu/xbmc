@@ -28,6 +28,7 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <EGL/egl.h>
+#include <EGL/fbdev_window.h>
 
 #ifdef CLASSNAME
 #undef CLASSNAME
