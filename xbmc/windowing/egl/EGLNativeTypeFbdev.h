@@ -26,7 +26,8 @@
 
 #ifndef _FBDEV_WINDOW_H_
 // Define it right here, since some platforms doesn't has fbdev_window.h at all.
-// This will not make fail on these platforms badly, since it will fail anyway on some other init steps.
+// This will not make it fail on these platforms badly, since it will fail softly anyway on some other init steps.
+#define _FBDEV_WINDOW_H_
 typedef struct fbdev_window
 {
   unsigned short width;
