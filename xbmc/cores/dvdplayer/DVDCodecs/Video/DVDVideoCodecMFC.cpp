@@ -421,7 +421,10 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
      but the U and V planes line sizes are actually halves of Y plane line size padded to 32
      This is pure workaround for -XU3 MFCv8 firmware "MFC v8.0, F/W: 14yy, 01mm, 13dd (D):
     */
-    resultLineSize = resultLineSize + (32 - resultLineSize%32);
+    // Only on -XU3 there are no converter, but the output format can be YUV420
+    // So this is the easiest way to distinguish -XU3 from -U3 with FIMC
+    if (!m_iConverterHandle)
+      resultLineSize = resultLineSize + (32 - resultLineSize%32);
 
     m_videoBuffer.format          = RENDER_FMT_YUV420P;
     m_videoBuffer.iLineSize[1]    = resultLineSize >> 1;
