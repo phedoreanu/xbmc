@@ -241,11 +241,13 @@ bool CDVDVideoCodecMFC::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options) {
   if (ioctl(finalSink->device, VIDIOC_TRY_FMT, &fmt) == 0)
     finalFormat = V4L2_PIX_FMT_NV12M;
   memzero(fmt);
+/*
   // Test YUV420 3 Planes Y/Cb/Cr
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
   fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_YUV420M;
   if (ioctl(finalSink->device, VIDIOC_TRY_FMT, &fmt) == 0)
     finalFormat = V4L2_PIX_FMT_YUV420M;
+*/
 
   // No suitable output formats available
   if (finalFormat < 0) {
