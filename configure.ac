@@ -2513,7 +2513,6 @@ OUTPUT_FILES="Makefile \
     xbmc/input/linux/Makefile \
     xbmc/interfaces/Makefile \
     xbmc/network/Makefile \
-    xbmc/network/httprequesthandler/python/Makefile \
     xbmc/network/upnp/Makefile \
     lib/libexif/Makefile \
     lib/libhdhomerun/Makefile \
@@ -2571,6 +2570,10 @@ OUTPUT_FILES="Makefile \
     tools/android/packaging/xbmc/src/org/xbmc/kodi/XBMCOnAudioFocusChangeListener.java \
     tools/android/packaging/xbmc/strings.xml \
     addons/xbmc.addon/addon.xml"
+
+if test "$use_webserver" = "yes"; then
+OUTPUT_FILES="$OUTPUT_FILES xbmc/network/httprequesthandler/python/Makefile"
+fi
 
 if test "$use_wayland" = "yes"; then
 OUTPUT_FILES="$OUTPUT_FILES xbmc/windowing/tests/wayland/Makefile"
