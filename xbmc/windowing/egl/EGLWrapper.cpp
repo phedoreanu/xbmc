@@ -112,7 +112,6 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
 #ifdef HAS_HYBRIS
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
 #endif
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeIMX>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeFbdev>(implementation))
       )
