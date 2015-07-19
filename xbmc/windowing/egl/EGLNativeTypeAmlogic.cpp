@@ -157,10 +157,10 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p23.98hz");
+          SetDisplayResolution("720p23hz");
           break;
         case 1920:
-          SetDisplayResolution("1080p23.98hz");
+          SetDisplayResolution("1080p23hz");
           break;
       }
       break;
@@ -191,10 +191,10 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p29.98hz");
+          SetDisplayResolution("720p29hz");
           break;
         case 1920:
-          SetDisplayResolution("1080p29.98hz");
+          SetDisplayResolution("1080p29hz");
           break;
       }
       break;
@@ -258,16 +258,16 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr);
 
   std::vector<std::string> probe_str;
-  probe_str.push_back("720p23.98hz");
+  probe_str.push_back("720p23hz");
   probe_str.push_back("720p25hz");
-  probe_str.push_back("720p29.98hz");
+  probe_str.push_back("720p29hz");
   probe_str.push_back("720p30hz");
   probe_str.push_back("720p50hz");
   probe_str.push_back("720p");
-  probe_str.push_back("1080p23.98hz");
+  probe_str.push_back("1080p23hz");
   probe_str.push_back("1080p24hz");
   probe_str.push_back("1080p25hz");
-  probe_str.push_back("1080p29.98hz");
+  probe_str.push_back("1080p29hz");
   probe_str.push_back("1080p30hz");
   probe_str.push_back("1080p50hz");
   probe_str.push_back("1080p");
