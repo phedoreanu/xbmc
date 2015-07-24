@@ -551,14 +551,19 @@ int CDVDVideoCodecMFC::Decode(BYTE* pData, int iSize, double dts, double pts) {
 
 void CDVDVideoCodecMFC::Reset() {
 
-  if (m_bCodecHealthy) // We need real reset only when codec went unhealthy
-    return;
-  CLog::Log(LOGERROR, "%s::%s - Codec Reset. Reinitializing", CLASSNAME, __func__);
-  CDVDCodecOptions options;
-  // We need full MFC/FIMC reset with device reopening.
-  // I wasn't able to reinitialize both IP's without fully closing and reopening them.
-  // There are always some clips that cause MFC or FIMC go into state which cannot be reset without close/open
-  Open(m_hints, options);
+  if (m_bCodecHealthy) {
+    CLog::Log(LOGDEBUG, "%s::%s - Codec Reset requested, but codec is healthy, doing soft-flush", CLASSNAME, __func__);
+    m_MFCOutput->SoftRestart();
+    m_MFCCapture->SoftRestart();
+  } else {
+    CLog::Log(LOGERROR, "%s::%s - Codec Reset. Reinitializing", CLASSNAME, __func__);
+    CDVDCodecOptions options;
+    // We need full MFC/FIMC reset with device reopening.
+    // I wasn't able to reinitialize both IP's without fully closing and reopening them.
+    // There are always some clips that cause MFC or FIMC go into state which cannot be reset without close/open
+    Open(m_hints, options);
+  }
+
 }
 
 bool CDVDVideoCodecMFC::GetPicture(DVDVideoPicture* pDvdVideoPicture) {
