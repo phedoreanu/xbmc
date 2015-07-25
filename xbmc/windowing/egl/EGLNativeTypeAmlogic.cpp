@@ -219,7 +219,7 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       break;
   }
 
-  return true;
+  return result;
 }
 
 bool CEGLNativeTypeAmlogic::SetDisplayResolution(const char *resolution)
