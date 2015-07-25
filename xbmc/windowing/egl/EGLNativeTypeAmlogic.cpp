@@ -151,13 +151,16 @@ bool CEGLNativeTypeAmlogic::GetNativeResolution(RESOLUTION_INFO *res) const
 bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
 {
   CLog::Log(LOGNOTICE, "%s::%s to %dx%d@%f", CLASSNAME, __func__, res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
+
+  bool result = false;
+
   switch((int)res.fRefreshRate) // floor the resolution, so 23.98 will be brought down to 23
   {
     case 23:
       switch(res.iScreenWidth)
       {
         case 1920:
-          SetDisplayResolution("1080p23hz");
+          result = etDisplayResolution("1080p23hz");
           break;
       }
       break;
@@ -165,7 +168,7 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1920:
-          SetDisplayResolution("1080p24hz");
+          result = SetDisplayResolution("1080p24hz");
           break;
       }
       break;
@@ -174,27 +177,28 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p50hz");
+          result = SetDisplayResolution("720p50hz");
           break;
         case 1920:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i50hz");
+            result = SetDisplayResolution("1080i50hz");
           else
-            SetDisplayResolution("1080p50hz");
+            result = SetDisplayResolution("1080p50hz");
           break;
       }
       break;
     case 29:
+    case 59:
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p59hz");
+          result = SetDisplayResolution("720p59hz");
           break;
         case 1920:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i59hz");
+            result = SetDisplayResolution("1080i59hz");
           else
-            SetDisplayResolution("1080p59hz");
+            result = SetDisplayResolution("1080p59hz");
           break;
       }
       break;
@@ -203,13 +207,13 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p");
+          result = SetDisplayResolution("720p");
           break;
         case 1920:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i");
+            result = SetDisplayResolution("1080i");
           else
-            SetDisplayResolution("1080p");
+            result = SetDisplayResolution("1080p");
           break;
       }
       break;
