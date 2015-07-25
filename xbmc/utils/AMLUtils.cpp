@@ -174,7 +174,7 @@ enum AML_DEVICE_TYPE aml_get_device_type()
         aml_device_type = AML_DEVICE_TYPE_M8M2;
       else
         aml_device_type = AML_DEVICE_TYPE_M8;
-    } else if (cpu_hardware.find("Meson8B") != std::string::npos 
+    } else if (cpu_hardware.find("Meson8B") != std::string::npos
             || cpu_hardware.find("ODROID") != std::string::npos)
       aml_device_type = AML_DEVICE_TYPE_M8B;
     else
@@ -330,16 +330,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 60;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p"))
-  {
-    res->iWidth = 1280;
-    res->iHeight= 720;
-    res->iScreenWidth = 1280;
-    res->iScreenHeight= 720;
-    res->fRefreshRate = 60;
-    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
-  }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p23hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p23hz")) // fake
   {
     res->iWidth = 1280;
     res->iHeight= 720;
@@ -348,7 +339,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 23.98;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p24hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p24hz")) // fake
   {
     res->iWidth = 1280;
     res->iHeight= 720;
@@ -357,7 +348,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 24;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p25hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p25hz")) // fake
   {
     res->iWidth = 1280;
     res->iHeight= 720;
@@ -366,7 +357,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 25;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p29hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p29hz")) // fake
   {
     res->iWidth = 1280;
     res->iHeight= 720;
@@ -375,7 +366,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 29.97;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p30hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p30hz")) // fake
   {
     res->iWidth = 1280;
     res->iHeight= 720;
@@ -384,7 +375,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 30;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "720p50hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p50hz")) // real
   {
     res->iWidth = 1280;
     res->iHeight= 720;
@@ -393,16 +384,25 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 50;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p"))
+  else if (StringUtils::EqualsNoCase(fromMode, "720p59hz")) // real
   {
-    res->iWidth = 1920;
-    res->iHeight= 1080;
-    res->iScreenWidth = 1920;
-    res->iScreenHeight= 1080;
+    res->iWidth = 1280;
+    res->iHeight= 720;
+    res->iScreenWidth = 1280;
+    res->iScreenHeight= 720;
+    res->fRefreshRate = 59.94;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
+  else if (StringUtils::EqualsNoCase(fromMode, "720p")) // real
+  {
+    res->iWidth = 1280;
+    res->iHeight= 720;
+    res->iScreenWidth = 1280;
+    res->iScreenHeight= 720;
     res->fRefreshRate = 60;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p23hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p23hz")) // real
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -411,7 +411,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 23.98;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p24hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p24hz")) // real
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -420,7 +420,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 24;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p25hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p25hz")) // fake
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -429,7 +429,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 25;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p29hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p29hz")) // fake
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -438,7 +438,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 29.97;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p30hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p30hz")) // fake
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -447,7 +447,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 30;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080p50hz"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p50hz")) // real
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -456,14 +456,23 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 50;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "1080i"))
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p59hz")) // real
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 1920;
+    res->iScreenHeight= 1080;
+    res->fRefreshRate = 59.94;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
+  else if (StringUtils::EqualsNoCase(fromMode, "1080p")) // real
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
     res->iScreenWidth = 1920;
     res->iScreenHeight= 1080;
     res->fRefreshRate = 60;
-    res->dwFlags = D3DPRESENTFLAG_INTERLACED;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
   else if (StringUtils::EqualsNoCase(fromMode, "1080i50hz"))
   {
@@ -472,6 +481,24 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->iScreenWidth = 1920;
     res->iScreenHeight= 1080;
     res->fRefreshRate = 50;
+    res->dwFlags = D3DPRESENTFLAG_INTERLACED;
+  }
+  else if (StringUtils::EqualsNoCase(fromMode, "1080i59hz"))
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 1920;
+    res->iScreenHeight= 1080;
+    res->fRefreshRate = 59.94;
+    res->dwFlags = D3DPRESENTFLAG_INTERLACED;
+  }
+  else if (StringUtils::EqualsNoCase(fromMode, "1080i"))
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 1920;
+    res->iScreenHeight= 1080;
+    res->fRefreshRate = 60;
     res->dwFlags = D3DPRESENTFLAG_INTERLACED;
   }
   else if (StringUtils::EqualsNoCase(fromMode, "4k2ksmpte"))

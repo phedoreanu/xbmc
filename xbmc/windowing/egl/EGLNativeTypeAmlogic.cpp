@@ -156,9 +156,6 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
     case 23:
       switch(res.iScreenWidth)
       {
-        case 1280:
-          SetDisplayResolution("720p23hz");
-          break;
         case 1920:
           SetDisplayResolution("1080p23hz");
           break;
@@ -191,10 +188,13 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p29hz");
+          SetDisplayResolution("720p59hz");
           break;
         case 1920:
-          SetDisplayResolution("1080p29hz");
+          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
+            SetDisplayResolution("1080i59hz");
+          else
+            SetDisplayResolution("1080p59hz");
           break;
       }
       break;
@@ -258,21 +258,25 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr);
 
   std::vector<std::string> probe_str;
-  probe_str.push_back("720p23hz");
-  probe_str.push_back("720p25hz");
-  probe_str.push_back("720p29hz");
-  probe_str.push_back("720p30hz");
-  probe_str.push_back("720p50hz");
-  probe_str.push_back("720p");
-  probe_str.push_back("1080p23hz");
-  probe_str.push_back("1080p24hz");
-  probe_str.push_back("1080p25hz");
-  probe_str.push_back("1080p29hz");
-  probe_str.push_back("1080p30hz");
-  probe_str.push_back("1080p50hz");
-  probe_str.push_back("1080p");
-  probe_str.push_back("1080i50hz");
-  probe_str.push_back("1080i");
+  probe_str.push_back("720p23hz");  // fake
+  probe_str.push_back("720p24hz");  // fake
+  probe_str.push_back("720p25hz");  // fake
+  probe_str.push_back("720p29hz");  // fake
+  probe_str.push_back("720p30hz");  // fake
+  probe_str.push_back("720p50hz");  // real
+  probe_str.push_back("720p59hz");  // real
+  probe_str.push_back("720p");      // real
+  probe_str.push_back("1080p23hz"); // real
+  probe_str.push_back("1080p24hz"); // real
+  probe_str.push_back("1080p25hz"); // fake
+  probe_str.push_back("1080p29hz"); // fake
+  probe_str.push_back("1080p30hz"); // fake
+  probe_str.push_back("1080p50hz"); // real
+  probe_str.push_back("1080p59hz"); // real
+  probe_str.push_back("1080p");     // real
+  probe_str.push_back("1080i50hz"); // real
+  probe_str.push_back("1080i50hz"); // real
+  probe_str.push_back("1080i");     // real
 
   resolutions.clear();
   RESOLUTION_INFO res;
