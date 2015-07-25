@@ -279,7 +279,7 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   probe_str.push_back("1080p59hz"); // real
   probe_str.push_back("1080p");     // real
   probe_str.push_back("1080i50hz"); // real
-  probe_str.push_back("1080i50hz"); // real
+  probe_str.push_back("1080i59hz"); // real
   probe_str.push_back("1080i");     // real
 
   resolutions.clear();
