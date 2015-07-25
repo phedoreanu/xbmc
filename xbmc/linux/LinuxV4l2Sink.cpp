@@ -112,6 +112,8 @@ bool CLinuxV4l2Sink::Init(CLinuxV4l2Sink *sink) {
 bool CLinuxV4l2Sink::SoftRestart() {
   StreamOn(VIDIOC_STREAMOFF);
 
+  while (!iFreeBuffers.empty())
+    iFreeBuffers.pop();
   for (int i = 0; i < m_NumBuffers; i++)
     iFreeBuffers.push(m_Buffers[i].index);
 
