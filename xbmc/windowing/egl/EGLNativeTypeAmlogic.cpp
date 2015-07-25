@@ -160,7 +160,7 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1920:
-          result = etDisplayResolution("1080p23hz");
+          result = SetDisplayResolution("1080p23hz");
           break;
       }
       break;
