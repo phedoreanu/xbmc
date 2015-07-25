@@ -555,7 +555,8 @@ void CDVDVideoCodecMFC::Reset() {
     CLog::Log(LOGDEBUG, "%s::%s - Codec Reset requested, but codec is healthy, doing soft-flush", CLASSNAME, __func__);
     m_MFCOutput->SoftRestart();
     m_MFCCapture->SoftRestart();
-    m_BufferNowOnScreen->iIndex = -1;
+    if (!m_iConverterHandle)
+      m_BufferNowOnScreen->iIndex = -1;
   } else {
     CLog::Log(LOGERROR, "%s::%s - Codec Reset. Reinitializing", CLASSNAME, __func__);
     CDVDCodecOptions options;
