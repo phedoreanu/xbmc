@@ -71,6 +71,7 @@ void CEGLNativeTypeAmlogic::Initialize()
   aml_permissions();
   aml_cpufreq_min(true);
   aml_cpufreq_max(true);
+  FreeScale(false);
   return;
 }
 void CEGLNativeTypeAmlogic::Destroy()
@@ -311,6 +312,13 @@ bool CEGLNativeTypeAmlogic::ShowWindow(bool show)
   std::string blank_framebuffer = "/sys/class/graphics/" + m_framebuffer_name + "/blank";
   SysfsUtils::SetInt(blank_framebuffer.c_str(), show ? 0 : 1);
   return true;
+}
+
+void CEGLNativeTypeAmlogic::FreeScale(bool state)
+{
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
+  std::string freescale_framebuffer = "/sys/class/graphics/" + m_framebuffer_name + "/free_scale";
+  SysfsUtils::SetInt(freescale_framebuffer.c_str(), state ? 1 : 0);
 }
 
 bool CEGLNativeTypeAmlogic::IsHdmiConnected() const
