@@ -153,13 +153,24 @@ bool CEGLNativeTypeAmlogic::GetNativeResolution(RESOLUTION_INFO *res) const
 bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
 {
   CLog::Log(LOGNOTICE, "%s::%s to %dx%d@%f", CLASSNAME, __func__, res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
+
+  bool result = false;
+
   switch((int)res.fRefreshRate) // floor the resolution, so 23.98 will be brought down to 23
   {
+    case 23:
+      switch(res.iScreenWidth)
+      {
+        case 1920:
+          result = SetDisplayResolution("1080p23hz");
+          break;
+      }
+      break;
     case 24:
       switch(res.iScreenWidth)
       {
         case 1920:
-          SetDisplayResolution("1080p24hz");
+          result = SetDisplayResolution("1080p24hz");
           break;
       }
       break;
@@ -168,13 +179,28 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p50hz");
+          result = SetDisplayResolution("720p50hz");
           break;
         case 1920:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i50hz");
+            result = SetDisplayResolution("1080i50hz");
           else
-            SetDisplayResolution("1080p50hz");
+            result = SetDisplayResolution("1080p50hz");
+          break;
+      }
+      break;
+    case 29:
+    case 59:
+      switch(res.iScreenWidth)
+      {
+        case 1280:
+          result = SetDisplayResolution("720p59hz");
+          break;
+        case 1920:
+          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
+            result = SetDisplayResolution("1080i59hz");
+          else
+            result = SetDisplayResolution("1080p59hz");
           break;
       }
       break;
@@ -183,19 +209,19 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
       switch(res.iScreenWidth)
       {
         case 1280:
-          SetDisplayResolution("720p");
+          result = SetDisplayResolution("720p");
           break;
         case 1920:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i");
+            result = SetDisplayResolution("1080i");
           else
-            SetDisplayResolution("1080p");
+            result = SetDisplayResolution("1080p");
           break;
       }
       break;
   }
 
-  return true;
+  return result;
 }
 
 bool CEGLNativeTypeAmlogic::SetDisplayResolution(const char *resolution)
@@ -237,18 +263,25 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   char valstr[256] = {0};
   aml_get_sysfs_str("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr, 255);
   std::vector<std::string> probe_str;
-  probe_str.push_back("720p23.98hz");
-  probe_str.push_back("720p25hz");
-  probe_str.push_back("720p50hz");
-  probe_str.push_back("720p");
-  probe_str.push_back("1080p23.98hz");
-  probe_str.push_back("1080p24hz");
-  probe_str.push_back("1080p25hz");
-  probe_str.push_back("1080p30hz");
-  probe_str.push_back("1080p50hz");
-  probe_str.push_back("1080p");
-  probe_str.push_back("1080i50hz");
-  probe_str.push_back("1080i");
+  probe_str.push_back("720p23hz");  // fake
+  probe_str.push_back("720p24hz");  // fake
+  probe_str.push_back("720p25hz");  // fake
+  probe_str.push_back("720p29hz");  // fake
+  probe_str.push_back("720p30hz");  // fake
+  probe_str.push_back("720p50hz");  // real
+  probe_str.push_back("720p59hz");  // real
+  probe_str.push_back("720p");      // real
+  probe_str.push_back("1080p23hz"); // real
+  probe_str.push_back("1080p24hz"); // real
+  probe_str.push_back("1080p25hz"); // fake
+  probe_str.push_back("1080p29hz"); // fake
+  probe_str.push_back("1080p30hz"); // fake
+  probe_str.push_back("1080p50hz"); // real
+  probe_str.push_back("1080p59hz"); // real
+  probe_str.push_back("1080p");     // real
+  probe_str.push_back("1080i50hz"); // real
+  probe_str.push_back("1080i59hz"); // real
+  probe_str.push_back("1080i");     // real
 
   resolutions.clear();
   RESOLUTION_INFO res;
