@@ -84,17 +84,6 @@ static unsigned int ALSASampleRateList[] =
   0
 };
 
-static int CheckNP2(unsigned x)
-{
-    --x;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return ++x;
-}
-
 CAESinkALSA::CAESinkALSA() :
   m_bufferSize(0),
   m_formatSampleRateMul(0.0),
@@ -667,26 +656,6 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
   snd_pcm_hw_params_set_access(m_pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 
   unsigned int sampleRate   = inconfig.sampleRate;
-#ifdef HAS_LIBAMCODEC
-  // Change the sample rates that are supported by ALSA but unsupported by HDMI to the closest supported value
-  switch (sampleRate)
-  {
-  case 5512:
-  case 8000:
-  case 11025:
-  case 16000:
-  case 22050:
-    sampleRate = 44100;
-    break;
-  case 64000:
-    sampleRate = 88200;
-    break;
-  case 384000:
-    sampleRate = 192000;
-    break;
-  }
-#endif
-
   snd_pcm_hw_params_set_rate_near    (m_pcm, hw_params, &sampleRate, NULL);
 
   unsigned int channelCount = inconfig.channels;
@@ -773,20 +742,12 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
   */
   periodSize  = std::min(periodSize, (snd_pcm_uframes_t) sampleRate / 20);
   bufferSize  = std::min(bufferSize, (snd_pcm_uframes_t) sampleRate / 5);
-#if defined(HAS_LIBAMCODEC)
-  // must be pot for pivos.
-  bufferSize  = CheckNP2(bufferSize);
-#endif
   
   /* 
    According to upstream we should set buffer size first - so make sure it is always at least
    4x period size to not get underruns (some systems seem to have issues with only 2 periods)
   */
   periodSize = std::min(periodSize, bufferSize / 4);
-#if defined(HAS_LIBAMCODEC)
-  // must be pot for pivos.
-  periodSize = CheckNP2(periodSize);
-#endif
 
   CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Request: periodSize %lu, bufferSize %lu", periodSize, bufferSize);
 
