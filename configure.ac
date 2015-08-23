@@ -1960,6 +1960,11 @@ esac
 # remember to convert commas to spaces
 for codecs in `echo $add_codecs | sed 's/,/ /g'`; do
   case $codecs in
+    *c1*)
+        AC_CHECK_HEADER([amcodec/codec.h],, AC_MSG_ERROR($missing_headers))
+	AC_CHECK_LIB([amcodec], main, LIBS="$LIBS -lamcodec -lamadec -lasound -lamavutils", AC_MSG_ERROR($missing_library))
+        XB_ADD_CODEC([C1], [c1], [$codecs])
+        ;;
     *mfc*)
         XB_ADD_CODEC([MFC], [mfc], [$codecs])
         ;;
