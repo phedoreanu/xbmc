@@ -234,7 +234,7 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, const C
 #if defined(HAS_C1)
   if ( !hint.software )
   {
-    if ( hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.cdec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_HEVC )
+    if ( hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_HEVC )
       if( (pCodec = OpenCodec(new CDVDVideoCodecC1(), hint, options)) ) return pCodec;
   }
 #endif
