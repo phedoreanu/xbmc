@@ -226,7 +226,7 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, const C
 #if defined(HAS_MFC)
   if ( !hint.software )
   {
-    if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_MPEG2VIDEO || AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_VC1 )
+    if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.cdec == AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_VC1 )
       if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
   }
 #endif
@@ -234,7 +234,7 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, const C
 #if defined(HAS_C1)
   if ( !hint.software )
   {
-    if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_HEVC )
+    if ( hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.cdec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_HEVC )
       if( (pCodec = OpenCodec(new CDVDVideoCodecC1(), hint, options)) ) return pCodec;
   }
 #endif
