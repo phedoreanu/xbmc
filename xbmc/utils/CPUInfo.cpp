@@ -611,7 +611,8 @@ bool CCPUInfo::getTemperature(CTemperature& temperature)
     if (!ret)
     {
       ret = fscanf(m_fProcTemperature, "%d", &value);
-      value = value / 1000;
+      if ((int)value > 1000)
+        value = value / 1000;
       scale = 'c';
       ret++;
     }
