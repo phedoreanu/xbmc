@@ -408,7 +408,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->iHeight= 1080;
     res->iScreenWidth = 1920;
     res->iScreenHeight= 1080;
-    res->fRefreshRate = 23.98;
+    res->fRefreshRate = 23.976;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
   else if (StringUtils::EqualsNoCase(fromMode, "1080p24hz")) // real
@@ -462,7 +462,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->iHeight= 1080;
     res->iScreenWidth = 1920;
     res->iScreenHeight= 1080;
-    res->fRefreshRate = 59.94;
+    res->fRefreshRate = 59.940;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
   else if (StringUtils::EqualsNoCase(fromMode, "1080p")) // real
@@ -489,7 +489,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->iHeight= 1080;
     res->iScreenWidth = 1920;
     res->iScreenHeight= 1080;
-    res->fRefreshRate = 59.94;
+    res->fRefreshRate = 59.940;
     res->dwFlags = D3DPRESENTFLAG_INTERLACED;
   }
   else if (StringUtils::EqualsNoCase(fromMode, "1080i"))
@@ -510,6 +510,15 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 24;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
+  else if (StringUtils::EqualsNoCase(fromMode, "4k2k23hz"))
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 3840;
+    res->iScreenHeight= 2160;
+    res->fRefreshRate = 23.976;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
   else if (StringUtils::EqualsNoCase(fromMode, "4k2k24hz"))
   {
     res->iWidth = 1920;
@@ -526,6 +535,15 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->iScreenWidth = 3840;
     res->iScreenHeight= 2160;
     res->fRefreshRate = 25;
+    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+  }
+  else if (StringUtils::EqualsNoCase(fromMode, "4k2k29hz"))
+  {
+    res->iWidth = 1920;
+    res->iHeight= 1080;
+    res->iScreenWidth = 3840;
+    res->iScreenHeight= 2160;
+    res->fRefreshRate = 29.970;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
   else if (StringUtils::EqualsNoCase(fromMode, "4k2k30hz"))
