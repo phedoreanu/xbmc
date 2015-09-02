@@ -485,10 +485,7 @@ int pre_header_feeding(am_private_t *para, am_packet_t *pkt)
             if (ret != PLAYER_SUCCESS) {
                 return ret;
             }
-        }
-    }
-    else if (para->stream_type == AM_STREAM_PS) {
-        if (( AV_CODEC_ID_MPEG1VIDEO == para->video_codec_id)
+        } else if (( AV_CODEC_ID_MPEG1VIDEO == para->video_codec_id)
           || (AV_CODEC_ID_MPEG2VIDEO == para->video_codec_id)) {
             ret = mpeg_add_header(para, pkt);
             if (ret != PLAYER_SUCCESS) {
@@ -533,6 +530,8 @@ bool CLinuxC1Codec::OpenDecoder(CDVDStreamInfo &hints) {
 
   memzero(am_private->am_pkt);
   am_private->stream_type      = AM_STREAM_ES;
+  if (hints.width == 0 || hints.height == 0)
+    return false;
   am_private->video_width      = hints.width;
   am_private->video_height     = hints.height;
   am_private->video_codec_id   = hints.codec;
