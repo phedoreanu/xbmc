@@ -1291,6 +1291,15 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list, bool force)
 
 AEDeviceType CAESinkALSA::AEDeviceTypeFromName(const std::string &name)
 {
+
+#if defined(HAS_LIBAMCODEC) || defined(HAS_C1)
+  // ugly workaround to show DTS / AC3 caps
+  // but don't run into multi channel issues
+  // as we can only open 2 pcm channels
+  // God, forgive me
+  return AE_DEVTYPE_IEC958;
+#endif
+
   if (name.substr(0, 4) == "hdmi")
     return AE_DEVTYPE_HDMI;
   else if (name.substr(0, 6) == "iec958" || name.substr(0, 5) == "spdif")
