@@ -23,12 +23,17 @@
 #include "utils/AMLUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/SysfsUtils.h"
+#include "utils/log.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <EGL/egl.h>
+
+#ifdef CLASSNAME
+#undef CLASSNAME
+#endif
+#define CLASSNAME "CEGLNativeTypeAmlogic"
 
 CEGLNativeTypeAmlogic::CEGLNativeTypeAmlogic()
 {
@@ -64,7 +69,7 @@ bool CEGLNativeTypeAmlogic::CheckCompatibility()
 void CEGLNativeTypeAmlogic::Initialize()
 {
   aml_permissions();
-  DisableFreeScale();
+  FreeScale(false);
 }
 void CEGLNativeTypeAmlogic::Destroy()
 {
@@ -73,19 +78,24 @@ void CEGLNativeTypeAmlogic::Destroy()
 
 bool CEGLNativeTypeAmlogic::CreateNativeDisplay()
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   m_nativeDisplay = EGL_DEFAULT_DISPLAY;
   return true;
 }
 
 bool CEGLNativeTypeAmlogic::CreateNativeWindow()
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
 #if defined(_FBDEV_WINDOW_H_)
   fbdev_window *nativeWindow = new fbdev_window;
   if (!nativeWindow)
     return false;
 
-  nativeWindow->width = 1920;
-  nativeWindow->height = 1080;
+  RESOLUTION_INFO res;
+  GetPreferredResolution(&res);
+
+  nativeWindow->width = res.iWidth;
+  nativeWindow->height = res.iHeight;
   m_nativeWindow = nativeWindow;
 
   SetFramebufferResolution(nativeWindow->width, nativeWindow->height);
@@ -98,6 +108,7 @@ bool CEGLNativeTypeAmlogic::CreateNativeWindow()
 
 bool CEGLNativeTypeAmlogic::GetNativeDisplay(XBNativeDisplayType **nativeDisplay) const
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   if (!nativeDisplay)
     return false;
   *nativeDisplay = (XBNativeDisplayType*) &m_nativeDisplay;
@@ -106,6 +117,7 @@ bool CEGLNativeTypeAmlogic::GetNativeDisplay(XBNativeDisplayType **nativeDisplay
 
 bool CEGLNativeTypeAmlogic::GetNativeWindow(XBNativeWindowType **nativeWindow) const
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   if (!nativeWindow)
     return false;
   *nativeWindow = (XBNativeWindowType*) &m_nativeWindow;
@@ -114,11 +126,13 @@ bool CEGLNativeTypeAmlogic::GetNativeWindow(XBNativeWindowType **nativeWindow) c
 
 bool CEGLNativeTypeAmlogic::DestroyNativeDisplay()
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   return true;
 }
 
 bool CEGLNativeTypeAmlogic::DestroyNativeWindow()
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
 #if defined(_FBDEV_WINDOW_H_)
   delete (fbdev_window*)m_nativeWindow, m_nativeWindow = NULL;
 #endif
@@ -134,6 +148,7 @@ bool CEGLNativeTypeAmlogic::GetNativeResolution(RESOLUTION_INFO *res) const
 
 bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
 {
+  CLog::Log(LOGNOTICE, "%s::%s to %dx%d@%f", CLASSNAME, __func__, res.iScreenWidth, res.iScreenHeight, res.fRefreshRate);
 #if defined(_FBDEV_WINDOW_H_)
   if (m_nativeWindow)
   {
@@ -142,55 +157,103 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
   }
 #endif
 
-  switch((int)(0.5 + res.fRefreshRate))
+  bool result = false;
+
+  switch((int)(res.fRefreshRate))
   {
-    default:
+    case 23:
+      switch(res.iScreenWidth)
+      {
+        case 1920:
+          result = SetDisplayResolution("1080p23hz");
+          break;
+      }
+      break;
+    case 24:
+      switch(res.iScreenWidth)
+      {
+        case 1920:
+          result = SetDisplayResolution("1080p24hz");
+          break;
+      }
+      break;
+    case 25:
+    case 50:
+      switch(res.iScreenWidth)
+      {
+        case 1280:
+          result = SetDisplayResolution("720p50hz");
+          break;
+        case 1920:
+          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
+            result = SetDisplayResolution("1080i50hz");
+          else
+            result = SetDisplayResolution("1080p50hz");
+          break;
+      }
+      break;
+    case 29:
+    case 59:
+      switch(res.iScreenWidth)
+      {
+        case 1280:
+          result = SetDisplayResolution("720p59hz");
+          break;
+        case 1920:
+          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
+            result = SetDisplayResolution("1080i59hz");
+          else
+            result = SetDisplayResolution("1080p59hz");
+          break;
+      }
+      break;
+    case 30:
     case 60:
       switch(res.iScreenWidth)
       {
         default:
         case 1280:
-          SetDisplayResolution("720p");
+          result = SetDisplayResolution("720p");
           break;
         case 1920:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i");
+            result = SetDisplayResolution("1080i");
           else
-            SetDisplayResolution("1080p");
+            result = SetDisplayResolution("1080p");
           break;
       }
-      break;
-    case 50:
-      switch(res.iScreenWidth)
-      {
-        default:
-        case 1280:
-          SetDisplayResolution("720p50hz");
-          break;
-        case 1920:
-          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
-            SetDisplayResolution("1080i50hz");
-          else
-            SetDisplayResolution("1080p50hz");
-          break;
-      }
-      break;
-    case 30:
-      SetDisplayResolution("1080p30hz");
-      break;
-    case 24:
-      SetDisplayResolution("1080p24hz");
       break;
   }
 
-  return true;
+  return result;
 }
 
 bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions)
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   std::string valstr;
   SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr);
-  std::vector<std::string> probe_str = StringUtils::Split(valstr, "\n");
+
+  std::vector<std::string> probe_str;
+  probe_str.push_back("720p23hz");  // fake
+  probe_str.push_back("720p24hz");  // fake
+  probe_str.push_back("720p25hz");  // fake
+  probe_str.push_back("720p29hz");  // fake
+  probe_str.push_back("720p30hz");  // fake
+  probe_str.push_back("720p50hz");  // real
+  probe_str.push_back("720p59hz");  // real
+  probe_str.push_back("720p");      // real
+  probe_str.push_back("1080p23hz"); // real
+  probe_str.push_back("1080p24hz"); // real
+  probe_str.push_back("1080p25hz"); // fake
+  probe_str.push_back("1080p29hz"); // fake
+  probe_str.push_back("1080p30hz"); // fake
+  probe_str.push_back("1080p50hz"); // real
+  probe_str.push_back("1080p59hz"); // real
+  probe_str.push_back("1080p");     // real
+  probe_str.push_back("1080i50hz"); // real
+  probe_str.push_back("1080i59hz"); // real
+  probe_str.push_back("1080i");     // real
 
   resolutions.clear();
   RESOLUTION_INFO res;
@@ -200,11 +263,11 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
       resolutions.push_back(res);
   }
   return resolutions.size() > 0;
-
 }
 
 bool CEGLNativeTypeAmlogic::GetPreferredResolution(RESOLUTION_INFO *res) const
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   // check display/mode, it gets defaulted at boot
   if (!GetNativeResolution(res))
   {
@@ -217,6 +280,7 @@ bool CEGLNativeTypeAmlogic::GetPreferredResolution(RESOLUTION_INFO *res) const
 
 bool CEGLNativeTypeAmlogic::ShowWindow(bool show)
 {
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   std::string blank_framebuffer = "/sys/class/graphics/" + m_framebuffer_name + "/blank";
   SysfsUtils::SetInt(blank_framebuffer.c_str(), show ? 0 : 1);
   return true;
@@ -224,6 +288,7 @@ bool CEGLNativeTypeAmlogic::ShowWindow(bool show)
 
 bool CEGLNativeTypeAmlogic::SetDisplayResolution(const char *resolution)
 {
+  CLog::Log(LOGNOTICE, "%s::%s to %s", CLASSNAME, __func__, resolution);
   std::string mode = resolution;
   // switch display resolution
   SysfsUtils::SetString("/sys/class/display/mode", mode.c_str());
@@ -235,32 +300,21 @@ bool CEGLNativeTypeAmlogic::SetDisplayResolution(const char *resolution)
   return true;
 }
 
-void CEGLNativeTypeAmlogic::SetupVideoScaling(const char *mode)
+void CEGLNativeTypeAmlogic::FreeScale(bool state)
 {
-  SysfsUtils::SetInt("/sys/class/graphics/fb0/blank",      1);
-  SysfsUtils::SetInt("/sys/class/graphics/fb0/free_scale", 0);
-  SysfsUtils::SetInt("/sys/class/graphics/fb1/free_scale", 0);
-  SysfsUtils::SetInt("/sys/class/ppmgr/ppscaler",          0);
-
-  if (strstr(mode, "1080"))
-  {
-    SysfsUtils::SetString("/sys/class/graphics/fb0/request2XScale", "8");
-    SysfsUtils::SetString("/sys/class/graphics/fb1/scale_axis",     "1280 720 1920 1080");
-    SysfsUtils::SetString("/sys/class/graphics/fb1/scale",          "0x10001");
-  }
-  else
-  {
-    SysfsUtils::SetString("/sys/class/graphics/fb0/request2XScale", "16 1280 720");
-  }
-
-  SysfsUtils::SetInt("/sys/class/graphics/fb0/blank", 0);
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
+  std::string freescale_framebuffer = "/sys/class/graphics/" + m_framebuffer_name + "/free_scale";
+  SysfsUtils::SetInt(freescale_framebuffer.c_str(), state ? 1 : 0);
 }
 
-void CEGLNativeTypeAmlogic::DisableFreeScale()
+bool CEGLNativeTypeAmlogic::IsHdmiConnected() const
 {
-  // turn off frame buffer freescale
-  SysfsUtils::SetInt("/sys/class/graphics/fb0/free_scale", 0);
-  SysfsUtils::SetInt("/sys/class/graphics/fb1/free_scale", 0);
+  CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
+
+  std::string hpd_state;
+  SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", hpd_state);
+  StringUtils::Trim(hpd_state);
+  return hpd_state == "1";
 }
 
 void CEGLNativeTypeAmlogic::SetFramebufferResolution(const RESOLUTION_INFO &res) const

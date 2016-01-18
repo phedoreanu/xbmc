@@ -84,7 +84,7 @@ AC_DEFUN([XB_FIND_SONAME],
     for path in $gcc_lib_path $env_lib_path $host_lib_path; do
       lib=[`ls -- $path/lib$2.dylib 2>/dev/null`]
       if test x$lib != x; then
-        # we want the path/name that is embedded in the dylib 
+        # we want the path/name that is embedded in the dylib
         $1_FILENAME=[`otool -L $lib | grep -v lib$2.dylib | grep lib$2 | awk '{V=1; print $V}'`]
         $1_SONAME=[`basename $$1_FILENAME`]
       fi
@@ -221,6 +221,10 @@ libusb_disabled="== libusb disabled. Plug and play USB device support will not b
 libusb_disabled_udev_found="== libusb disabled. =="
 libcec_enabled="== libcec enabled. =="
 libcec_disabled="== libcec disabled. CEC adapter support will not be available. =="
+
+# Odroid stuff
+hybris_enabled="== Libhybris enabled. =="
+hybris_disabled="== Libhybris disabled. =="
 
 AC_ARG_WITH([ffmpeg],
   [AS_HELP_STRING([--with-ffmpeg],
@@ -407,7 +411,7 @@ AC_ARG_ENABLE([avahi],
   [disable Avahi support (default is enabled if libavahi-common and libavahi-client is found)])],
   [use_avahi=$enableval],
   [use_avahi=yes])
-  
+
   AC_ARG_ENABLE([mdnsembedded],
   [AS_HELP_STRING([--disable-mdnsembedded],
   [disable mDNSEmbedded support (default is auto)])],
@@ -513,7 +517,7 @@ AC_ARG_ENABLE([breakpad],
 
 AC_ARG_ENABLE([codec],
   [AS_HELP_STRING([--enable-codec],
-  [enable additional codecs from a list of comma separated names, (default is none, choices are amcodec, libstagefright and imxvpu)])],
+  [enable additional codecs from a list of comma separated names, (default is none, c1, mfc, choices are amcodec, libstagefright and imxvpu)])],
   [add_codecs=$enableval],
   [add_codecs=no])
 
@@ -523,6 +527,13 @@ AC_ARG_ENABLE([libav-compat],
    *not* supported by ${APP_NAME} developers and is provided only for convenience. (default is no) 'Linux only'])],
   [use_libav_hacks=$enableval],
   [use_libav_hacks=no])
+
+# Odroid stuff
+AC_ARG_ENABLE([hybris],
+  [AS_HELP_STRING([--enable-hybris],
+  [enable use of Libhybris (default is no) 'Linux only'])],
+  [use_hybris=$enableval],
+  [use_hybris=no])
 
 ### End of external library options
 
@@ -562,7 +573,7 @@ case $host in
      use_gles=yes
      use_optical_drive=no
      use_x11=no
-     build_shared_lib=yes    
+     build_shared_lib=yes
      ;;
   i*86*-linux-gnu*|i*86*-*-linux-uclibc*)
      target_platform=target_linux
@@ -811,7 +822,7 @@ elif test "$use_arch" = "arm"; then
   CFLAGS="$CFLAGS -mno-apcs-stack-check"
   CXXFLAGS="$CXXFLAGS -mno-apcs-stack-check"
   if test "$use_tegra" = "yes"; then
-    # Compile for ARMv7a architecture, need to test gcc for vfpv3-d16 support 
+    # Compile for ARMv7a architecture, need to test gcc for vfpv3-d16 support
     SAVE_CFLAGS="$CFLAGS"
     CFLAGS="-mfpu=vfpv3-d16"
     AC_COMPILE_IFELSE(
@@ -820,10 +831,10 @@ elif test "$use_arch" = "arm"; then
         CXXFLAGS="$CXXFLAGS -Wno-psabi -Wa,-march=armv7a -mtune=cortex-a9 -mfpu=vfpv3-d16 -mthumb-interwork"
         use_cpu=cortex-a9],
       [ CFLAGS="$SAVE_CFLAGS -Wa,-march=armv6 -mtune=cortex-a8 -mthumb-interwork"
-        CXXFLAGS="$CXXFLAGS -Wa,-march=armv6 -mtune=cortex-a8 -mthumb-interwork"    
+        CXXFLAGS="$CXXFLAGS -Wa,-march=armv6 -mtune=cortex-a8 -mthumb-interwork"
         use_cpu=cortex-a8])
   else
-    if test "$use_neon" = "yes"; then 
+    if test "$use_neon" = "yes"; then
       CFLAGS="$CFLAGS -mfpu=neon -mvectorize-with-neon-quad"
       CXXFLAGS="$CXXFLAGS -mfpu=neon -mvectorize-with-neon-quad"
     fi
@@ -1388,7 +1399,7 @@ fi
 
 # touch skin
 use_touch_skin=no
-if [[ -f "addons/skin.re-touched/addon.xml" ]]; then 
+if [[ -f "addons/skin.re-touched/addon.xml" ]]; then
   use_touch_skin=yes
   USE_TOUCH_SKIN=1
   AC_DEFINE([HAS_TOUCH_SKIN], [1], [Whether to build the touch skin.])
@@ -1620,6 +1631,23 @@ else
   AC_MSG_NOTICE($libcap_disabled)
 fi
 
+# Odroid stuff
+if test "x$use_hybris" != "xno"; then
+  AC_SUBST(ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX -DTARGET_HYBRIS")
+  USE_HYBRIS=1;
+  AC_DEFINE(HAS_EGLGLES, [1], [Define if supporting EGL based GLES Framebuffer])
+  AC_DEFINE(HAS_HYBRIS, [1], [Define if supporting Hybris based systems])
+  PKG_CHECK_MODULES([HWCOMPOSEREGL],  [hwcomposer-egl >= 0.1],
+    [INCLUDES="$INCLUDES -I/usr/include/hybris $HWCOMPOSEREGL_CFLAGS"; LIBS="$LIBS $HWCOMPOSEREGL_LIBS"],
+    AC_MSG_ERROR($missing_library))
+  PKG_CHECK_MODULES([HYBRISEGL],  [hybris-egl-platform >= 0.1],
+    [INCLUDES="$INCLUDES $HYBRISEGL_CFLAGS"; LIBS="$LIBS $HYBRISEGL_LIBS"],
+    AC_MSG_ERROR($missing_library))
+  PKG_CHECK_MODULES([LIBHARDWARE],  [libhardware >= 0.1],
+    [INCLUDES="$INCLUDES $LIBHARDWARE_CFLAGS"; LIBS="$LIBS $LIBHARDWARE_LIBS -lsync -lmedia"],
+    AC_MSG_ERROR($missing_library))
+fi
+
 # FFmpeg
 FFMPEG_LIBNAMES="libavcodec >= 56.26.100
                  libavfilter >= 5.11.102
@@ -1705,7 +1733,7 @@ fi
 
 if test "$FFMPEG_FOUND" != "true"; then
   PKG_CHECK_MODULES([FFMPEG], [$FFMPEG_LIBNAMES],
-    [INCLUDES="$INCLUDES $FFMPEG_CFLAGS"; LIBS="$LIBS $FFMPEG_LIBS"; FFMPEG_FOUND="true"], 
+    [INCLUDES="$INCLUDES $FFMPEG_CFLAGS"; LIBS="$LIBS $FFMPEG_LIBS"; FFMPEG_FOUND="true"],
     [AC_MSG_ERROR("ffmpeg not found")])
 fi
 
@@ -1860,6 +1888,14 @@ esac
 # remember to convert commas to spaces
 for codecs in `echo $add_codecs | sed 's/,/ /g'`; do
   case $codecs in
+    *c1*)
+        AC_CHECK_HEADER([amcodec/codec.h],, AC_MSG_ERROR($missing_headers))
+        AC_CHECK_LIB([amcodec], main, LIBS="$LIBS -lamcodec -lamadec -lasound -lamavutils", AC_MSG_ERROR($missing_library))
+        XB_ADD_CODEC([C1], [c1], [$codecs])
+        ;;
+    *mfc*)
+        XB_ADD_CODEC([MFC], [mfc], [$codecs])
+        ;;
     *amcodec*)
         AC_CHECK_HEADER([amcodec/codec_error.h],, AC_MSG_ERROR($missing_headers))
         XB_ADD_CODEC([LIBAMCODEC], [amcodec], [$codecs])
@@ -2274,7 +2310,7 @@ else
 fi
 
 if test "x$use_airtunes" != "xno"; then
-  final_message="$final_message\n  AirTunes support (libshairplay):\tYes"  
+  final_message="$final_message\n  AirTunes support (libshairplay):\tYes"
 else
   final_message="$final_message\n  AirTunes support:\tNo"
 fi
@@ -2329,6 +2365,13 @@ if test "x$add_codecs" != "xno"; then
   final_message="$final_message\n  additional codecs:\tYes, $add_codecs"
 else
   final_message="$final_message\n  additional codecs:\tNo"
+fi
+
+# Odroid stuff
+if test "x$use_hybris" != "xno"; then
+  final_message="$final_message\n  Odroid Hybris support:\tYes"
+else
+  final_message="$final_message\n  Odroid Hybris support:\tNo"
 fi
 
 ### External libraries messages
@@ -2535,6 +2578,7 @@ AC_SUBST(USE_SSE4)
 AC_SUBST(USE_MMAL)
 AC_SUBST(USE_X11)
 AC_SUBST(USE_BREAKPAD)
+AC_SUBST(USE_HYBRIS)
 
 # pushd and popd are not available in other shells besides bash, so implement
 # our own pushd/popd functions
@@ -2594,7 +2638,7 @@ XB_CONFIG_MODULE([lib/libdvd/libdvdcss], [
     --prefix="${prefix}" --includedir="${includedir}" --libdir="${libdir}" --datadir="${datadir}" \
     --host=$host_alias \
     --build=$build_alias \
-    --target=$target_alias \      
+    --target=$target_alias \
     --disable-doc \
     --enable-static \
     --with-pic
@@ -2606,7 +2650,7 @@ XB_CONFIG_MODULE([lib/libdvd/libdvdread], [
     --prefix="${prefix}" --includedir="${includedir}" --libdir="${libdir}" --datadir="${datadir}" \
     --host=$host_alias \
     --build=$build_alias \
-    --target=$target_alias \      
+    --target=$target_alias \
     --enable-static \
     --disable-shared \
     --disable-strip \
@@ -2625,7 +2669,7 @@ XB_CONFIG_MODULE([lib/libdvd/libdvdnav], [
     --prefix="${prefix}" --includedir="${includedir}" --libdir="${libdir}" --datadir="${datadir}" \
     --host=$host_alias \
     --build=$build_alias \
-    --target=$target_alias \      
+    --target=$target_alias \
     --enable-static \
     --disable-shared \
     --cc="$CC"
@@ -2637,7 +2681,7 @@ XB_CONFIG_MODULE([lib/cpluff], [
     --host=$host_alias \
     --build=$build_alias \
     --target=$target_alias CFLAGS="$CFLAGS" CC="$CC" CXX="$CXX" LDFLAGS="$LDFLAGS" LIBS=""
-    #LDFLAGS="$LDFLAGS -Wl,-read_only_relocs,suppress"    
+    #LDFLAGS="$LDFLAGS -Wl,-read_only_relocs,suppress"
 ], [0])
 
 XB_CONFIG_MODULE([lib/gtest], [

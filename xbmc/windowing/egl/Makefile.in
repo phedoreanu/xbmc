@@ -32,6 +32,10 @@ SRCS+= wayland/Callback.cpp \
        wayland/XBMCConnection.cpp \
        wayland/XBMCSurface.cpp
 endif
+ifeq (@USE_HYBRIS@,1)
+SRCS+= EGLNativeTypeHybris.cpp
+endif
+SRCS+= EGLNativeTypeFbdev.cpp
 
 LIB = windowing_egl.a
 

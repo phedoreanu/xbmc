@@ -357,7 +357,7 @@ void dumpfile_write(am_private_t *para, void* buf, int bufsiz)
   }
 
   if (para->dumpdemux && para->dumpfile != -1)
-    write(para->dumpfile, buf, bufsiz);
+    int ret = write(para->dumpfile, buf, bufsiz);
 }
 
 /*************************************************************************/
@@ -710,7 +710,7 @@ int write_av_packet(am_private_t *para, am_packet_t *pkt)
         }
         pkt->newflag = 0;
     }
-	
+
     buf = pkt->data;
     size = pkt->data_size ;
     if (size == 0 && pkt->isvalid) {
@@ -1554,7 +1554,7 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
       // h264 in an avi file
       if (m_hints.ptsinvalid)
         am_private->gcodec.param = (void*)(EXTERNAL_PTS | SYNC_OUTSIDE);
-      break; 
+      break;
     case VFORMAT_REAL:
       am_private->stream_type = AM_STREAM_RM;
       am_private->vcodec.noblock = 1;

@@ -734,16 +734,16 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
   snd_pcm_hw_params_get_buffer_size_max(hw_params, &bufferSize);
   snd_pcm_hw_params_get_period_size_max(hw_params, &periodSize, NULL);
 
-  /* 
-   We want to make sure, that we have max 200 ms Buffer with 
+  /*
+   We want to make sure, that we have max 200 ms Buffer with
    a periodSize of approx 50 ms. Choosing a higher bufferSize
    will cause problems with menu sounds. Buffer will be increased
    after those are fixed.
   */
   periodSize  = std::min(periodSize, (snd_pcm_uframes_t) sampleRate / 20);
   bufferSize  = std::min(bufferSize, (snd_pcm_uframes_t) sampleRate / 5);
-  
-  /* 
+
+  /*
    According to upstream we should set buffer size first - so make sure it is always at least
    4x period size to not get underruns (some systems seem to have issues with only 2 periods)
   */
@@ -762,7 +762,7 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
     snd_pcm_hw_params_copy(hw_params_copy, hw_params); // restore working copy
     CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Request: Failed to limit periodSize to %lu", periodSizeMax);
   }
-  
+
   // first trying bufferSize, PeriodSize
   // for more info see here:
   // http://mailman.alsa-project.org/pipermail/alsa-devel/2009-September/021069.html
@@ -787,7 +787,7 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
       // try only periodSize
       periodSize = periodSizeTemp;
       snd_pcm_hw_params_copy(hw_params_copy, hw_params); // restore working copy
-      if(snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, NULL) != 0 
+      if(snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, NULL) != 0
         || snd_pcm_hw_params(m_pcm, hw_params_copy) != 0)
       {
         // try only BufferSize
@@ -809,7 +809,7 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
       snd_pcm_get_params(m_pcm, &bufferSize, &periodSize);
     }
   }
-  
+
   CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Got: periodSize %lu, bufferSize %lu", periodSize, bufferSize);
 
   /* set the format parameters */
@@ -1291,6 +1291,15 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list, bool force)
 
 AEDeviceType CAESinkALSA::AEDeviceTypeFromName(const std::string &name)
 {
+
+#if defined(HAS_LIBAMCODEC) || defined(HAS_C1)
+  // ugly workaround to show DTS / AC3 caps
+  // but don't run into multi channel issues
+  // as we can only open 2 pcm channels
+  // God, forgive me I wrote this
+  return AE_DEVTYPE_IEC958;
+#endif
+
   if (name.substr(0, 4) == "hdmi")
     return AE_DEVTYPE_HDMI;
   else if (name.substr(0, 6) == "iec958" || name.substr(0, 5) == "spdif")
@@ -1395,9 +1404,9 @@ void CAESinkALSA::EnumerateDevice(AEDeviceInfoList &list, const std::string &dev
 
             if (badHDMI)
             {
-              /* 
-               * Warn about disconnected devices, but keep them enabled 
-               * Detection can go wrong on Intel, Nvidia and on all 
+              /*
+               * Warn about disconnected devices, but keep them enabled
+               * Detection can go wrong on Intel, Nvidia and on all
                * AMD (fglrx) hardware, so it is not safe to close those
                * handles
                */

@@ -50,6 +50,12 @@
 #include "Video/DVDVideoCodecAndroidMediaCodec.h"
 #include "android/activity/AndroidFeatures.h"
 #endif
+#if defined(HAS_MFC)
+#include "Video/DVDVideoCodecMFC.h"
+#endif
+#if defined(HAS_C1)
+#include "Video/DVDVideoCodecC1.h"
+#endif
 #include "Audio/DVDAudioCodecFFmpeg.h"
 #include "Audio/DVDAudioCodecPassthrough.h"
 #include "Overlay/DVDOverlayCodecSSA.h"
@@ -199,6 +205,16 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, const C
 #else
   hwSupport += "MMAL:no ";
 #endif
+#if defined(HAS_MFC) && defined(_LINUX)
+  hwSupport += "MFC:yes ";
+#elif defined(_LINUX)
+  hwSupport += "MFC:no ";
+#endif
+#if defined(HAS_C1) && defined(_LINUX)
+  hwSupport += "C1:yes ";
+#elif defined(_LINUX)
+  hwSupport += "C1:no ";
+#endif
   CLog::Log(LOGDEBUG, "CDVDFactoryCodec: compiled in hardware support: %s", hwSupport.c_str());
 
   if (hint.stills && (hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG1VIDEO))
@@ -206,6 +222,22 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, const C
      // If dvd is an mpeg2 and hint.stills
      if ( (pCodec = OpenCodec(new CDVDVideoCodecLibMpeg2(), hint, options)) ) return pCodec;
   }
+
+#if defined(HAS_MFC)
+  if ( !hint.software )
+  {
+    if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_VC1 )
+      if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
+  }
+#endif
+
+#if defined(HAS_C1)
+  if ( !hint.software )
+  {
+    if ( hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_HEVC )
+      if( (pCodec = OpenCodec(new CDVDVideoCodecC1(), hint, options)) ) return pCodec;
+  }
+#endif
 
 #if defined(HAS_LIBAMCODEC)
   // amcodec can handle dvd playback.
