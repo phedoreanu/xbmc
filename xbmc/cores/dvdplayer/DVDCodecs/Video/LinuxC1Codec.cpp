@@ -892,8 +892,8 @@ void CLinuxC1Codec::SetViewport(int width, int height) {
 
   char setting[256] = {};
   double scale;
-  int displayWidth = CDisplaySettings::Get().GetCurrentResolutionInfo().iWidth;
-  int displayHeight = CDisplaySettings::Get().GetCurrentResolutionInfo().iHeight;
+  int displayWidth = CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iWidth;
+  int displayHeight = CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iHeight;
   int cutWidth;
   int cutHeight;
 
