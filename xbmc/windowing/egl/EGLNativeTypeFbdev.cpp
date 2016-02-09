@@ -45,19 +45,6 @@ CEGLNativeTypeFbdev::CEGLNativeTypeFbdev()
 
 CEGLNativeTypeFbdev::~CEGLNativeTypeFbdev()
 {
-  if (m_nativeWindow)
-    free(m_nativeWindow);
-
-  if (vinfo)
-    free(vinfo);
-  if (finfo)
-    free(finfo);
-
-  if(m_iFBHandle >= 0)
-  {
-    close(m_iFBHandle);
-    m_iFBHandle = -1;
-  }
 }
 
 bool CEGLNativeTypeFbdev::CheckCompatibility()
