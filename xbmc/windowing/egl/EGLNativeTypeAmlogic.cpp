@@ -164,64 +164,79 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
   switch((int)(res.fRefreshRate))
   {
     case 23:
-      switch(res.iScreenWidth)
+      switch(res.iScreenHeight)
       {
-        case 1920:
+        case 1080:
           result = SetDisplayResolution("1080p23hz");
+          break;
+        case 2160:
+          result = SetDisplayResolution("2160p23hz");
           break;
       }
       break;
     case 24:
-      switch(res.iScreenWidth)
+      switch(res.iScreenHeight)
       {
-        case 1920:
+        case 1080:
           result = SetDisplayResolution("1080p24hz");
+          break;
+        case 2160:
+          result = SetDisplayResolution("2160p24hz");
           break;
       }
       break;
     case 25:
     case 50:
-      switch(res.iScreenWidth)
+      switch(res.iScreenHeight)
       {
-        case 1280:
+        case 720:
           result = SetDisplayResolution("720p50hz");
           break;
-        case 1920:
+        case 1080:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
             result = SetDisplayResolution("1080i50hz");
           else
             result = SetDisplayResolution("1080p50hz");
           break;
+        case 2160:
+          result = SetDisplayResolution("2160p50hz420");
+          break;
       }
       break;
     case 29:
     case 59:
-      switch(res.iScreenWidth)
+      switch(res.iScreenHeight)
       {
-        case 1280:
+        case 720:
           result = SetDisplayResolution("720p59hz");
           break;
-        case 1920:
+        case 1080:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
             result = SetDisplayResolution("1080i59hz");
           else
             result = SetDisplayResolution("1080p59hz");
           break;
+        case 2160:
+          result = SetDisplayResolution("2160p59hz");
+          break;
       }
       break;
     case 30:
     case 60:
-      switch(res.iScreenWidth)
+      switch(res.iScreenHeight)
       {
         default:
-        case 1280:
+        case 720:
           result = SetDisplayResolution("720p");
           break;
-        case 1920:
+        case 1080:
           if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
             result = SetDisplayResolution("1080i");
           else
             result = SetDisplayResolution("1080p");
+          break;
+        case 2160:
+          result = SetDisplayResolution("2160p60hz420");
           break;
       }
       break;
@@ -256,6 +271,11 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   probe_str.push_back("1080i50hz"); // real
   probe_str.push_back("1080i59hz"); // real
   probe_str.push_back("1080i");     // real
+  probe_str.push_back("2160p23hz");
+  probe_str.push_back("2160p24hz");
+  probe_str.push_back("2160p50hz420");
+  probe_str.push_back("2160p59hz");
+  probe_str.push_back("2160p60hz420");
 
   resolutions.clear();
   RESOLUTION_INFO res;
@@ -336,8 +356,8 @@ void CEGLNativeTypeAmlogic::SetFramebufferResolution(int width, int height) cons
     {
       vinfo.xres = width;
       vinfo.yres = height;
-      vinfo.xres_virtual = 1920;
-      vinfo.yres_virtual = 2160;
+      vinfo.xres_virtual = width;
+      vinfo.yres_virtual = height * 2;
       vinfo.bits_per_pixel = 32;
       vinfo.activate = FB_ACTIVATE_ALL;
       ioctl(fd0, FBIOPUT_VSCREENINFO, &vinfo);
