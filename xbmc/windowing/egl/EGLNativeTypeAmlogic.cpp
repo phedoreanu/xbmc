@@ -75,6 +75,7 @@ void CEGLNativeTypeAmlogic::Initialize()
 }
 void CEGLNativeTypeAmlogic::Destroy()
 {
+  SetScreenScale(1, 1, false);
   return;
 }
 
@@ -199,7 +200,7 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
             result = SetDisplayResolution("1080p50hz");
           break;
         case 2160:
-          result = SetDisplayResolution("2160p50hz420");
+          result = SetDisplayResolution("2160p50hz");
           break;
       }
       break;
@@ -236,11 +237,13 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
             result = SetDisplayResolution("1080p");
           break;
         case 2160:
-          result = SetDisplayResolution("2160p60hz420");
+          result = SetDisplayResolution("2160p60hz");
           break;
       }
       break;
   }
+
+  DealWithScale(res);
 
   return result;
 }
@@ -273,9 +276,9 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   probe_str.push_back("1080i");     // real
   probe_str.push_back("2160p23hz");
   probe_str.push_back("2160p24hz");
-  probe_str.push_back("2160p50hz420");
+  probe_str.push_back("2160p50hz");
   probe_str.push_back("2160p59hz");
-  probe_str.push_back("2160p60hz420");
+  probe_str.push_back("2160p60hz");
 
   resolutions.clear();
   RESOLUTION_INFO res;
@@ -327,6 +330,22 @@ void CEGLNativeTypeAmlogic::FreeScale(bool state)
   CLog::Log(LOGDEBUG, "%s::%s", CLASSNAME, __func__);
   std::string freescale_framebuffer = "/sys/class/graphics/" + m_framebuffer_name + "/free_scale";
   SysfsUtils::SetInt(freescale_framebuffer.c_str(), state ? 1 : 0);
+}
+
+void CEGLNativeTypeAmlogic::DealWithScale(const RESOLUTION_INFO &res) {
+  CLog::Log(LOGDEBUG, "%s::%s Interface is %dx%d, screen size is %dx%d", CLASSNAME, __func__, res.iWidth, res.iHeight, res.iScreenWidth, res.iScreenHeight);
+  if (res.iScreenWidth > res.iWidth && res.iScreenHeight > res.iHeight) {
+    CLog::Log(LOGDEBUG, "%s::%s Scaling interfaces of size %dx%d to full screen", CLASSNAME, __func__, res.iWidth, res.iHeight);
+    SetScreenScale(res.iWidth, res.iHeight, true);
+  }
+}
+
+void CEGLNativeTypeAmlogic::SetScreenScale(int width, int height, bool state) {
+  char setting[256] = {};
+  sprintf(setting, "0 0 %d %d", width - 1 , height - 1);
+  std::string framebuffer = "/sys/class/graphics/" + m_framebuffer_name;
+  SysfsUtils::SetString(framebuffer + "/scale_axis", setting);
+  SysfsUtils::SetString(framebuffer + "/scale", state ? "0x10001" : "0x0");
 }
 
 bool CEGLNativeTypeAmlogic::IsHdmiConnected() const

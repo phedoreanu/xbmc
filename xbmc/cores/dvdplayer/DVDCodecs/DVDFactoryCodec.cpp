@@ -226,35 +226,22 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, const C
 #if defined(HAS_MFC)
   if ( !hint.software )
   {
-    if ( hint.codec == AV_CODEC_ID_H263 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_VC1 )
-      if( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
+    if ( (pCodec = OpenCodec(new CDVDVideoCodecMFC(), hint, options)) ) return pCodec;
   }
 #endif
 
 #if defined(HAS_C1)
   if ( !hint.software )
   {
-    if ( hint.codec == AV_CODEC_ID_MPEG1VIDEO || hint.codec == AV_CODEC_ID_MPEG2VIDEO || hint.codec == AV_CODEC_ID_MPEG4 || hint.codec == AV_CODEC_ID_H264 || hint.codec == AV_CODEC_ID_HEVC )
-      if( (pCodec = OpenCodec(new CDVDVideoCodecC1(), hint, options)) ) return pCodec;
+    if ( (pCodec = OpenCodec(new CDVDVideoCodecC1(), hint, options)) ) return pCodec;
   }
 #endif
 
 #if defined(HAS_LIBAMCODEC)
   // amcodec can handle dvd playback.
-  if (!hint.software && CSettings::GetInstance().GetBool(CSettings::SETTING_VIDEOPLAYER_USEAMCODEC))
+  if ( !hint.software )
   {
-    switch(hint.codec)
-    {
-      case AV_CODEC_ID_MPEG4:
-      case AV_CODEC_ID_MSMPEG4V2:
-      case AV_CODEC_ID_MSMPEG4V3:
-        // Avoid h/w decoder for SD; Those files might use features
-        // not supported and can easily be soft-decoded
-        if (hint.width <= 800)
-          break;
-      default:
-        if ( (pCodec = OpenCodec(new CDVDVideoCodecAmlogic(), hint, options)) ) return pCodec;
-    }
+    if ( (pCodec = OpenCodec(new CDVDVideoCodecAmlogic(), hint, options)) ) return pCodec;
   }
 #endif
 

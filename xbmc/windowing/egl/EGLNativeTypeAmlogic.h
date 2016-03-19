@@ -67,6 +67,8 @@ private:
   void SetFramebufferResolution(const RESOLUTION_INFO &res) const;
   void SetFramebufferResolution(int width, int height) const;
   void FreeScale(bool state);
+  void DealWithScale(const RESOLUTION_INFO &res);
+  void SetScreenScale(int width, int height, bool state);
   bool IsHdmiConnected() const;
 
   std::string m_framebuffer_name;

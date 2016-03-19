@@ -573,7 +573,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 30;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "2160p50hz420"))
+  else if (StringUtils::EqualsNoCase(fromMode, "2160p50hz"))
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
@@ -591,7 +591,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
     res->fRefreshRate = 59.940;
     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
   }
-  else if (StringUtils::EqualsNoCase(fromMode, "2160p60hz420"))
+  else if (StringUtils::EqualsNoCase(fromMode, "2160p60hz"))
   {
     res->iWidth = 1920;
     res->iHeight= 1080;
