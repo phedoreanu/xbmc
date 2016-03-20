@@ -276,6 +276,9 @@ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
   probe_str.push_back("1080i");     // real
   probe_str.push_back("2160p23hz");
   probe_str.push_back("2160p24hz");
+  probe_str.push_back("2160p25hz");
+  probe_str.push_back("2160p29hz");
+  probe_str.push_back("2160p30hz");
   probe_str.push_back("2160p50hz");
   probe_str.push_back("2160p59hz");
   probe_str.push_back("2160p60hz");

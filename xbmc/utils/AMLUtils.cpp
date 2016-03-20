@@ -195,7 +195,8 @@ bool aml_support_h264_4k2k()
 
 void aml_set_audio_passthrough(bool passthrough)
 {
-  SysfsUtils::SetInt("/sys/class/audiodsp/digital_raw", passthrough ? 2:0);
+  CLog::Log(LOGDEBUG, "AML: Setting passthrough %d", passthrough);
+  SysfsUtils::SetString("/sys/class/audiodsp/digital_raw", passthrough ? "2":"0");
 }
 
 void aml_probe_hdmi_audio()
@@ -213,7 +214,7 @@ void aml_probe_hdmi_audio()
   {
     char valstr[1024] = {0};
 
-    read(fd, valstr, sizeof(valstr) - 1);
+    int tmp = read(fd, valstr, sizeof(valstr) - 1);
     valstr[strlen(valstr)] = '\0';
     close(fd);
 
