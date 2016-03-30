@@ -479,6 +479,7 @@ snd_pcm_chmap_t* CAESinkALSA::SelectALSAChannelMap(const CAEChannelInfo& info)
 
 void CAESinkALSA::GetAESParams(const AEAudioFormat& format, std::string& params)
 {
+#if !defined(HAS_LIBAMCODEC)
   if (m_passthrough)
     params = "AES0=0x06";
   else
@@ -495,6 +496,7 @@ void CAESinkALSA::GetAESParams(const AEAudioFormat& format, std::string& params)
   else if (format.m_sampleRate ==  44100) params += ",AES3=0x00";
   else if (format.m_sampleRate ==  32000) params += ",AES3=0x03";
   else params += ",AES3=0x01";
+#endif
 }
 
 bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
@@ -772,22 +774,24 @@ bool CAESinkALSA::InitializeHW(const ALSAConfig &inconfig, ALSAConfig &outconfig
   snd_pcm_uframes_t periodSizeTemp, bufferSizeTemp;
   periodSizeTemp = periodSize;
   bufferSizeTemp = bufferSize;
-  if (snd_pcm_hw_params_set_buffer_size_near(m_pcm, hw_params_copy, &bufferSize) != 0
-    || snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, NULL) != 0
+  int dir = 0;
+
+  if (snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, &dir) != 0
+    || snd_pcm_hw_params_set_buffer_size_near(m_pcm, hw_params_copy, &bufferSize) != 0
     || snd_pcm_hw_params(m_pcm, hw_params_copy) != 0)
   {
     bufferSize = bufferSizeTemp;
     periodSize = periodSizeTemp;
     // retry with PeriodSize, bufferSize
     snd_pcm_hw_params_copy(hw_params_copy, hw_params); // restore working copy
-    if (snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, NULL) != 0
+    if (snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, &dir) != 0
       || snd_pcm_hw_params_set_buffer_size_near(m_pcm, hw_params_copy, &bufferSize) != 0
       || snd_pcm_hw_params(m_pcm, hw_params_copy) != 0)
     {
       // try only periodSize
       periodSize = periodSizeTemp;
       snd_pcm_hw_params_copy(hw_params_copy, hw_params); // restore working copy
-      if(snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, NULL) != 0
+      if(snd_pcm_hw_params_set_period_size_near(m_pcm, hw_params_copy, &periodSize, &dir) != 0
         || snd_pcm_hw_params(m_pcm, hw_params_copy) != 0)
       {
         // try only BufferSize
