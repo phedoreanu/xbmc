@@ -26,6 +26,9 @@ case $build in
   arm*-*-linux-gnu*|arm*-*-linux-uclibc*)
      AC_SUBST(NATIVE_ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX")
      ;;
+  aarch64-*-linux-gnu*)
+     AC_SUBST(NATIVE_ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX")
+     ;;
   *)
      AC_MSG_ERROR(unsupported native build platform: $build)
 esac
@@ -61,6 +64,9 @@ case $host in
      AC_SUBST(ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX -D_POWERPC64")
      ;;
   arm*-*-linux-gnu*|arm*-*-linux-uclibc*)
+     AC_SUBST(ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX")
+     ;;
+  aarch64-*-linux-gnu*)
      AC_SUBST(ARCH_DEFINES, "-DTARGET_POSIX -DTARGET_LINUX -D_LINUX")
      ;;
   mips*-*-linux-gnu*|mips*-*-linux-uclibc*)

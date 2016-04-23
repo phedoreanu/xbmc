@@ -34,6 +34,10 @@
   #include "EGLNativeTypeIMX.h"
 #endif
 #include "EGLNativeTypeAmlogic.h"
+#ifdef HAS_HYBRIS
+#include "EGLNativeTypeHybris.h"
+#endif
+#include "EGLNativeTypeFbdev.h"
 #include "EGLWrapper.h"
 
 #define CheckError() m_result = eglGetError(); if(m_result != EGL_SUCCESS) CLog::Log(LOGERROR, "EGL error in %s: %x",__FUNCTION__, m_result);
@@ -94,11 +98,14 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation)) ||
 #endif
 #if defined(TARGET_RASPBERRY_PI)
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation)) ||
 #elif defined(HAS_IMXVPU)
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeIMX>(implementation))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeIMX>(implementation)) ||
+#elif defined(HAS_HYBRIS)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
 #else
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation))
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeFbdev>(implementation))
 #endif
       )
   {
@@ -420,4 +427,3 @@ bool CEGLWrapper::SurfaceAttrib(EGLDisplay display, EGLSurface surface, EGLint a
   return eglSurfaceAttrib(display, surface, attribute, value);
 }
 #endif
-

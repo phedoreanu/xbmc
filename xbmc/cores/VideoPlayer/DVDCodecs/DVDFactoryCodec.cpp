@@ -45,6 +45,9 @@
 #include "Video/DVDVideoCodecAndroidMediaCodec.h"
 #include "platform/android/activity/AndroidFeatures.h"
 #endif
+#if defined(HAS_MFC)
+#include "Video/DVDVideoCodecMFC.h"
+#endif
 #include "Audio/DVDAudioCodecFFmpeg.h"
 #include "Audio/DVDAudioCodecPassthrough.h"
 #include "Overlay/DVDOverlayCodecSSA.h"
@@ -158,6 +161,8 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, CProces
     pCodec = OpenCodec(new CDVDVideoCodecOpenMax(processInfo), hint, options);
 #elif defined(HAS_MMAL)
     pCodec = OpenCodec(new CMMALVideo(processInfo), hint, options);
+#elif defined(HAS_MFC)
+    pCodec = OpenCodec(new CDVDVideoCodecMFC(processInfo), hint, options);
 #endif
     if (pCodec)
       return pCodec;

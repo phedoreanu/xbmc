@@ -361,7 +361,7 @@ void dumpfile_write(am_private_t *para, void* buf, int bufsiz)
   }
 
   if (para->dumpdemux && para->dumpfile != -1)
-    write(para->dumpfile, buf, bufsiz);
+    int ret = write(para->dumpfile, buf, bufsiz);
 }
 
 /*************************************************************************/
@@ -387,13 +387,14 @@ static int64_t get_pts_video()
 
 static int set_pts_pcrscr(int64_t value)
 {
+  int ret;
   int fd = open("/sys/class/tsync/pts_pcrscr", O_WRONLY);
   if (fd >= 0)
   {
     char pts_str[64];
     unsigned long pts = (unsigned long)value;
     sprintf(pts_str, "0x%lx", pts);
-    write(fd, pts_str, strlen(pts_str));
+    ret = write(fd, pts_str, strlen(pts_str));
     close(fd);
     return 0;
   }
@@ -714,7 +715,7 @@ int write_av_packet(am_private_t *para, am_packet_t *pkt)
         }
         pkt->newflag = 0;
     }
-	
+
     buf = pkt->data;
     size = pkt->data_size ;
     if (size == 0 && pkt->isvalid) {
@@ -1566,7 +1567,7 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
       // h264 in an avi file
       if (m_hints.ptsinvalid)
         am_private->gcodec.param = (void*)(EXTERNAL_PTS | SYNC_OUTSIDE);
-      break; 
+      break;
     case VFORMAT_REAL:
       am_private->stream_type = AM_STREAM_RM;
       am_private->vcodec.noblock = 1;
@@ -1602,7 +1603,7 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
         am_private->gcodec.param = (void*)(EXTERNAL_PTS | SYNC_OUTSIDE);
       break;
   }
-  am_private->gcodec.param = (void *)((unsigned int)am_private->gcodec.param | (am_private->video_rotation_degree << 16));
+  am_private->gcodec.param = (void *)((uintptr_t)am_private->gcodec.param | (am_private->video_rotation_degree << 16));
 
   // translate from generic to firemware version dependent
   m_dll->codec_init_para(&am_private->gcodec, &am_private->vcodec);
@@ -1631,7 +1632,7 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
 
   Create();
 
-  m_display_rect = CRect(0, 0, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iWidth, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iHeight);
+  m_display_rect = CRect(0, 0, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iScreenWidth, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iScreenHeight);
 
   std::string strScaler;
   SysfsUtils::GetString("/sys/class/ppmgr/ppscaler", strScaler);
@@ -2112,7 +2113,6 @@ void CAMLCodec::SetVideoRect(const CRect &SrcRect, const CRect &DestRect)
         int diff = (int) ((dst_rect.Height() - dst_rect.Width()) / 2);
         dst_rect = CRect(DestRect.x1 - diff, DestRect.y1, DestRect.x2 + diff, DestRect.y2);
       }
-
   }
 
   if (m_dst_rect != dst_rect)
@@ -2134,7 +2134,7 @@ void CAMLCodec::SetVideoRect(const CRect &SrcRect, const CRect &DestRect)
 #ifdef TARGET_ANDROID
   display = m_display_rect;
 #else
-  display = gui;
+  display = CRect(0, 0, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iScreenWidth, CDisplaySettings::GetInstance().GetCurrentResolutionInfo().iScreenHeight);;
 #endif
   if (gui != display)
   {
@@ -2206,6 +2206,8 @@ void CAMLCodec::SetVideoRect(const CRect &SrcRect, const CRect &DestRect)
   std::string s_gui = StringUtils::Format("%i,%i,%i,%i",
     (int)gui.x1, (int)gui.y1,
     (int)gui.Width(), (int)gui.Height());
+  CLog::Log(LOGDEBUG, "CAMLCodec::SetVideoRect:SrcRect(%i,%i,%i,%i)", (int)SrcRect.x1, (int)SrcRect.y1, (int)SrcRect.Width(), (int)SrcRect.Height());
+  CLog::Log(LOGDEBUG, "CAMLCodec::SetVideoRect:DestRect(%i,%i,%i,%i)", (int)DestRect.x1, (int)DestRect.y1, (int)DestRect.Width(), (int)DestRect.Height());
   CLog::Log(LOGDEBUG, "CAMLCodec::SetVideoRect:display(%s)", s_display.c_str());
   CLog::Log(LOGDEBUG, "CAMLCodec::SetVideoRect:gui(%s)", s_gui.c_str());
   CLog::Log(LOGDEBUG, "CAMLCodec::SetVideoRect:m_dst_rect(%s)", s_m_dst_rect.c_str());
