@@ -16,6 +16,8 @@ SRCS += LinuxV4l2Sink.cpp
 
 SRCS += RBP.cpp
 
+SRCS += $(wildcard @CORE_SYSTEM_VARIANT@/*.cpp)
+
 ifeq (@USE_OMXLIB@,1)
 SRCS += OMXClock.cpp
 SRCS += OMXCore.cpp

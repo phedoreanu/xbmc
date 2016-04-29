@@ -198,7 +198,6 @@ libplist_not_found="== Could not find libplist. AirPlay support disabled. =="
 libplist_disabled="== AirPlay support disabled. =="
 alsa_not_found="== Could not find ALSA. ALSA support disabled. =="
 dbus_not_found="== Could not find DBUS. DBUS support disabled. =="
-sdl_joystick_not_found="== Could not find SDL2. Joystick support disabled. =="
 libcap_disabled="== Capabilities detection support disabled. =="
 libcap_not_found="== Could not find libcap. Capabilities detection support disabled. =="
 gtest_enabled="== Google Test Framework will be configured. =="
@@ -598,7 +597,6 @@ case $host in
      use_libcec=no
      use_vtbdecoder=yes
      use_optical_drive=no
-     use_dvdcss=no
      use_gles=yes
      use_cpu=cortex-a8
      ARCH="arm-osx"
@@ -627,10 +625,12 @@ case $host in
      AC_SUBST([DEPENDS_ROOT_FOR_XCODE])
      ;;
   powerpc-*-linux-gnu*|powerpc-*-linux-uclibc*)
+     target_platform=target_linux
      CORE_SYSTEM_NAME=linux
      ARCH="powerpc-linux"
      ;;
   powerpc64-*-linux-gnu*|powerpc64-*-linux-uclibc*)
+     target_platform=target_linux
      CORE_SYSTEM_NAME=linux
      ARCH="powerpc64-linux"
      ;;
@@ -669,7 +669,6 @@ case $host in
      CORE_SYSTEM_NAME=linux
      ARCH="mips"
      use_arch="mips"
-     use_joystick=no
      use_gles=no
      use_gl=yes
      use_sdl=yes
@@ -982,8 +981,6 @@ if test "$use_mysql" = "yes"; then
   fi
 fi
 AC_CHECK_HEADER([ass/ass.h],, AC_MSG_ERROR($missing_library))
-AC_CHECK_HEADER([ogg/ogg.h],,        AC_MSG_ERROR($missing_library))
-AC_CHECK_HEADER([vorbis/vorbisfile.h],, AC_MSG_ERROR($missing_library))
 
 PKG_CHECK_MODULES([LIBCURL], [libcurl],, AC_MSG_ERROR([libcurl not found]))
 XB_FIND_SONAME([CURL], [curl])
@@ -1985,8 +1982,8 @@ else
   final_message="$final_message\n  MID Support:\tNo"
 fi
 
-ORIGCC=$CC
-ORIGCXX=$CXX
+ORIGCC="$CC"
+ORIGCXX="$CXX"
 if test "x$use_ccache" != "xno"; then
   AC_PATH_PROG(CCACHE,ccache,none)
   if test "$ac_cv_path_CCACHE" = "none"; then
@@ -2345,9 +2342,6 @@ AC_SUBST(PYTHON_VERSION)
 AC_SUBST(OUTPUT_FILES)
 AC_SUBST(HAVE_XBMC_NONFREE)
 AC_SUBST(LIBCURL_BASENAME)
-AC_SUBST(LIBVORBISFILE_BASENAME)
-AC_SUBST(LIBOGG_BASENAME)
-AC_SUBST(LIBVORBIS_BASENAME)
 AC_SUBST(LIBASS_BASENAME)
 AC_SUBST(LIBMEPG2_BASENAME)
 AC_SUBST_FILE(XBMC_STANDALONE_SH_PULSE)
