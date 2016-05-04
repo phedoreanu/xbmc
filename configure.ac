@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([kodi], [16.9.701], [http://trac.kodi.tv])
+AC_INIT([kodi], [16.9.702], [http://trac.kodi.tv])
 AC_CONFIG_HEADERS([xbmc/config.h])
 AH_TOP([#pragma once])
 m4_include([m4/ax_prog_cc_for_build.m4])
@@ -184,8 +184,6 @@ vdpau_not_found="== Could not find libvdpau. VDPAU support disabled. =="
 vdpau_disabled="== VDPAU support manually disabled. =="
 vaapi_not_found="== Could not find libva. VAAPI support disabled. =="
 vaapi_disabled="== VAAPI support manually disabled. =="
-vtbdecoder_enabled="== VTBDecoder support enabled. =="
-vtbdecoder_disabled="== VTBDecoder support manually disabled. =="
 openmax_disabled="== OpenMax support manually disabled. =="
 openmax_not_found="== Could not find OpenMax headers. OpenMax support disabled. =="
 librtmp_not_found="== Could not find libRTMP. RTMP support disabled. =="
@@ -274,12 +272,6 @@ AC_ARG_ENABLE([vaapi],
   [enable VAAPI decoding (default is auto)])],
   [use_vaapi=$enableval],
   [use_vaapi=auto])
-
-AC_ARG_ENABLE([vtbdecoder],
-  [AS_HELP_STRING([--enable-vtbdecoder],
-  [enable VTBDecoder decoding (default is auto)])],
-  [use_vtbdecoder=$enableval],
-  [use_vtbdecoder=auto])
 
 AC_ARG_ENABLE([openmax],
   [AS_HELP_STRING([--enable-openmax],
@@ -595,7 +587,6 @@ case $host in
      CORE_SYSTEM_NAME=ios
      use_neon=yes
      use_libcec=no
-     use_vtbdecoder=yes
      use_optical_drive=no
      use_gles=yes
      use_cpu=cortex-a8
@@ -611,14 +602,12 @@ case $host in
      ;;
   *86*-apple-darwin*)
      CORE_SYSTEM_NAME=osx
-     use_vtbdecoder=no
      ARCH="x86-osx"
      DEPENDS_ROOT_FOR_XCODE=$(echo ${prefix%/*})
      AC_SUBST([DEPENDS_ROOT_FOR_XCODE])
      ;;
   powerpc-apple-darwin*)
      CORE_SYSTEM_NAME=osx
-     use_vtbdecoder=no
      ARCH="powerpc-osx"
      use_arch="ppc"
      DEPENDS_ROOT_FOR_XCODE=$(echo ${prefix%/*})
@@ -629,7 +618,7 @@ case $host in
      CORE_SYSTEM_NAME=linux
      ARCH="powerpc-linux"
      ;;
-  powerpc64-*-linux-gnu*|powerpc64-*-linux-uclibc*)
+  powerpc64*-*-linux-gnu*|powerpc64*-*-linux-uclibc*)
      target_platform=target_linux
      CORE_SYSTEM_NAME=linux
      ARCH="powerpc64-linux"
@@ -1195,6 +1184,9 @@ fi
 # Optical
 if test "$use_optical_drive" = "yes"; then
   AC_DEFINE([HAS_DVD_DRIVE], [1], [Define to 1 to have optical drive support])
+  USE_OPTICAL_DRIVE=1
+else
+  USE_OPTICAL_DRIVE=0
 fi
 
 # Alsa
@@ -1723,24 +1715,6 @@ else
   USE_VAAPI=0
 fi
 
-# VTBDecoder
-if test "x$use_vtbdecoder" != "xno"; then
-  if test "$host_vendor" = "apple" ; then
-    HAVE_VIDEOTOOLBOXDECODER=1
-    AC_DEFINE([HAVE_VIDEOTOOLBOXDECODER], [1], [Define to 1 if you have the 'VTBDecoder' library.])
-    AC_MSG_NOTICE($vtbdecoder_enabled)
-  else
-    if test "x$use_vtbdecoder" = "xyes"; then
-      AC_MSG_ERROR([VTB Decoder not supported on this platform])
-    else
-      use_vtbdecoder="no"
-      AC_MSG_NOTICE($vtbdecoder_disabled)
-    fi
-  fi
-else
-  AC_MSG_NOTICE($vtbdecoder_disabled)
-fi
-
 # OpenMax
 if test "$use_gles" = "yes" && test "$use_openmax" = "auto"; then
 
@@ -1923,12 +1897,6 @@ if test "x$use_vaapi" != "xno"; then
   final_message="$final_message\n  VAAPI:\tYes"
 else
   final_message="$final_message\n  VAAPI:\tNo"
-fi
-
-if test "x$use_vtbdecoder" != "xno"; then
-  final_message="$final_message\n  VTBDecoder:\tYes"
-else
-  final_message="$final_message\n  VTBDecoder:\tNo"
 fi
 
 if test "$use_openmax" != "no"; then
@@ -2374,6 +2342,7 @@ AC_SUBST(UPNP_DEFINES)
 AC_SUBST(USE_SSE4)
 AC_SUBST(USE_MMAL)
 AC_SUBST(USE_X11)
+AC_SUBST(USE_OPTICAL_DRIVE)
 AC_SUBST(USE_BREAKPAD)
 AC_SUBST(USE_HYBRIS)
 AC_SUBST(CROSS_COMPILING)

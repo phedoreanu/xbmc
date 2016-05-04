@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="win32">
@@ -2091,9 +2091,6 @@
     <ClCompile Include="..\..\xbmc\filesystem\FileCache.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\filesystem\MemBufferCache.cpp">
-      <Filter>filesystem</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\MediaSource.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -3458,6 +3455,12 @@
     <ClCompile Include="..\..\xbmc\ServiceManager.cpp" />
     <ClCompile Include="..\..\xbmc\addons\PVRClient.cpp">
       <Filter>addons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\epg\GUIEPGGridContainerModel.cpp">
+      <Filter>epg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\dialogs\GUIDialogKeyboardTouch.cpp">
+      <Filter>dialogs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -5236,9 +5239,6 @@
     <ClInclude Include="..\..\xbmc\platform\XbmcContext.h">
       <Filter>platform</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\MemBufferCache.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\CircularCache.h">
       <Filter>filesystem</Filter>
     </ClInclude>
@@ -6716,6 +6716,12 @@
     <ClInclude Include="..\..\xbmc\ServiceManager.h" />
     <ClInclude Include="..\..\xbmc\addons\PVRClient.h">
       <Filter>addons</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\epg\GUIEPGGridContainerModel.h">
+      <Filter>epg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\dialogs\GUIDialogKeyboardTouch.h">
+      <Filter>dialogs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

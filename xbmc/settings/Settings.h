@@ -106,7 +106,6 @@ public:
   static const std::string SETTING_VIDEOPLAYER_SEEKSTEPS;
   static const std::string SETTING_VIDEOPLAYER_SEEKDELAY;
   static const std::string SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE;
-  static const std::string SETTING_VIDEOPLAYER_PAUSEAFTERREFRESHCHANGE;
   static const std::string SETTING_VIDEOPLAYER_USEDISPLAYASCLOCK;
   static const std::string SETTING_VIDEOPLAYER_ERRORINASPECT;
   static const std::string SETTING_VIDEOPLAYER_STRETCH43;
@@ -132,8 +131,7 @@ public:
   static const std::string SETTING_VIDEOPLAYER_USEDXVA2;
   static const std::string SETTING_VIDEOPLAYER_USEOMXPLAYER;
   static const std::string SETTING_VIDEOPLAYER_USEOMX;
-  static const std::string SETTING_VIDEOPLAYER_USEVIDEOTOOLBOX;
-  static const std::string SETTING_VIDEOPLAYER_USEVDA;
+  static const std::string SETTING_VIDEOPLAYER_USEVTB;
   static const std::string SETTING_VIDEOPLAYER_USEMMAL;
   static const std::string SETTING_VIDEOPLAYER_USESTAGEFRIGHT;
   static const std::string SETTING_VIDEOPLAYER_LIMITGUIUPDATE;
@@ -296,6 +294,7 @@ public:
   static const std::string SETTING_VIDEOSCREEN_BLANKDISPLAYS;
   static const std::string SETTING_VIDEOSCREEN_STEREOSCOPICMODE;
   static const std::string SETTING_VIDEOSCREEN_PREFEREDSTEREOSCOPICMODE;
+  static const std::string SETTING_VIDEOSCREEN_NOOFBUFFERS;
   static const std::string SETTING_VIDEOSCREEN_GUICALIBRATION;
   static const std::string SETTING_VIDEOSCREEN_TESTPATTERN;
   static const std::string SETTING_VIDEOSCREEN_LIMITEDRANGE;
