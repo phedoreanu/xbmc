@@ -126,24 +126,37 @@ void CRenderManager::CClockSync::Reset()
 
 unsigned int CRenderManager::m_nextCaptureId = 0;
 
-CRenderManager::CRenderManager(CDVDClock &clock, IRenderMsg *player) : m_dvdClock(clock)
+CRenderManager::CRenderManager(CDVDClock &clock, IRenderMsg *player) :
+  m_pRenderer(nullptr),
+  m_bTriggerUpdateResolution(false),
+  m_bRenderGUI(true),
+  m_waitForBufferCount(0),
+  m_rendermethod(0),
+  m_renderedOverlay(false),
+  m_renderDebug(false),
+  m_renderState(STATE_UNCONFIGURED),
+  m_displayLatency(0.0),
+  m_videoDelay(0),
+  m_QueueSize(2),
+  m_QueueSkip(0),
+  m_format(RENDER_FMT_NONE),
+  m_width(0),
+  m_height(0),
+  m_dwidth(0),
+  m_dheight(0),
+  m_fps(0.0f),
+  m_extended_format(0),
+  m_orientation(0),
+  m_NumberBuffers(0),
+  m_lateframes(-1),
+  m_presentpts(0.0),
+  m_presentstep(PRESENT_IDLE),
+  m_presentsource(0),
+  m_dvdClock(clock),
+  m_playerPort(player),
+  m_captureWaitCounter(0),
+  m_hasCaptures(false)
 {
-  m_pRenderer = nullptr;
-  m_renderState = STATE_UNCONFIGURED;
-
-  m_presentstep = PRESENT_IDLE;
-  m_rendermethod = 0;
-  m_presentsource = 0;
-  m_bTriggerUpdateResolution = false;
-  m_hasCaptures = false;
-  m_displayLatency = 0.0f;
-  m_QueueSize   = 2;
-  m_QueueSkip   = 0;
-  m_format      = RENDER_FMT_NONE;
-  m_renderedOverlay = false;
-  m_captureWaitCounter = 0;
-  m_playerPort = player;
-  m_renderDebug = false;
 }
 
 CRenderManager::~CRenderManager()
@@ -172,24 +185,13 @@ bool CRenderManager::Configure(DVDVideoPicture& picture, float fps, unsigned fla
 
   // check if something has changed
   {
-    float config_framerate = fps;
-    float render_framerate = g_graphicsContext.GetFPS();
-    if (CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
-      render_framerate = config_framerate;
-    bool changerefresh = (fps != 0) &&
-                         (m_fps == 0.0 || fmod(m_fps, fps) != 0.0) &&
-                         (render_framerate != config_framerate);
-
     CSingleLock lock(m_statelock);
-    
-    m_fps = fps;
-    CheckEnableClockSync();
 
     if (m_width == picture.iWidth &&
         m_height == picture.iHeight &&
         m_dwidth == picture.iDisplayWidth &&
         m_dheight == picture.iDisplayHeight &&
-        !changerefresh &&
+        m_fps == fps &&
         (m_flags & ~CONF_FLAGS_FULLSCREEN) == (flags & ~CONF_FLAGS_FULLSCREEN) &&
         m_format == picture.format &&
         m_extended_format == picture.extended_format &&
@@ -233,6 +235,8 @@ bool CRenderManager::Configure(DVDVideoPicture& picture, float fps, unsigned fla
     m_NumberBuffers  = buffers;
     m_renderState = STATE_CONFIGURING;
     m_stateEvent.Reset();
+
+    CheckEnableClockSync();
 
     CSingleLock lock2(m_presentlock);
     m_presentstep = PRESENT_READY;
