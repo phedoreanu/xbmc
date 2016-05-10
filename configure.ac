@@ -633,13 +633,15 @@ case $host in
      use_gl=no
      USE_STATIC_FFMPEG=1
      ;;
-  aarch64-*-linux-gnu*)
+  aarch64*-*-linux-gnu*|aarch64*-*-linux-uclibc*)
      target_platform=target_linux
-     ARCH="arm64"
+     ARCH="aarch64"
      use_arch="aarch64"
-     use_joystick=no
+     use_neon=yes
      use_gles=yes
      use_gl=no
+     use_wayland=no
+     USE_STATIC_FFMPEG=1
      ;;
   arm*-*linux-android*)
      target_platform=target_android
@@ -1614,7 +1616,6 @@ if test "${USE_STATIC_FFMPEG}" = "1"; then
   # get the libdir for static linking
   FFMPEG_LIBDIR=${pkg_cfg_prefix}$(PKG_CONFIG_SYSROOT_DIR="" ${PKG_CONFIG} --static --variable=libdir libavcodec)
   GNUTLS_ALL_LIBS=$(${PKG_CONFIG} --static --libs-only-l --silence-errors gnutls)
-  VORBISENC_ALL_LIBS=$(${PKG_CONFIG} --static --libs-only-l --silence-errors vorbisenc)
 
   # check if static libs are available
   for ff_lib in ${ff_libs}; do
@@ -2303,8 +2304,6 @@ AC_SUBST(SDL_DEFINES)
 AC_SUBST(FFMPEG_LIBDIR)
 AC_SUBST(USE_STATIC_FFMPEG)
 AC_SUBST(GNUTLS_ALL_LIBS)
-AC_SUBST(VORBISENC_ALL_LIBS)
-AC_SUBST(DCADEC_ALL_LIBS)
 AC_SUBST(USE_LIBAV_HACKS)
 AC_SUBST(PYTHON_VERSION)
 AC_SUBST(OUTPUT_FILES)

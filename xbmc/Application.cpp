@@ -262,6 +262,8 @@ CApplication::CApplication(void)
   , m_progressTrackingItem(new CFileItem)
   , m_musicInfoScanner(new CMusicInfoScanner)
   , m_fallbackLanguageLoaded(false)
+  , m_WaitingExternalCalls(0)
+  , m_ProcessedExternalCalls(0)
 {
   m_network = NULL;
   TiXmlBase::SetCondenseWhiteSpace(false);
@@ -689,6 +691,8 @@ bool CApplication::Create()
 
 bool CApplication::CreateGUI()
 {
+  m_frameMoveGuard.lock();
+
   m_renderGUI = true;
 #ifdef HAS_SDL
   CLog::Log(LOGNOTICE, "Setup SDL");
@@ -2622,6 +2626,21 @@ void CApplication::HandleShutdownMessage()
   }
 }
 
+void CApplication::LockFrameMoveGuard()
+{
+  ++m_WaitingExternalCalls;
+  m_frameMoveGuard.lock();
+  ++m_ProcessedExternalCalls;
+  g_graphicsContext.Lock();
+};
+
+void CApplication::UnlockFrameMoveGuard()
+{
+  --m_WaitingExternalCalls;
+  g_graphicsContext.Unlock();
+  m_frameMoveGuard.unlock();
+};
+
 void CApplication::FrameMove(bool processEvents, bool processGUI)
 {
   MEASURE_FUNCTION;
@@ -2657,7 +2676,23 @@ void CApplication::FrameMove(bool processEvents, bool processGUI)
       m_pInertialScrollingHandler->ProcessInertialScroll(frameTime);
       CSeekHandler::GetInstance().Process();
     }
+
+    // Open the door for external calls e.g python exactly here.
+    // Window size can be between 2 and 10ms and depends on number of continuous requests
+    if (m_WaitingExternalCalls)
+    {
+      CSingleExit ex(g_graphicsContext);
+      m_frameMoveGuard.unlock();
+      // Calculate a window size between 2 and 10ms, 4 continuous requests let the window grow by 1ms
+      unsigned int sleepTime = std::max(static_cast<unsigned int>(2), std::min(m_ProcessedExternalCalls >> 2, static_cast<unsigned int>(10)));
+      Sleep(sleepTime);
+      m_frameMoveGuard.lock();
+      CLog::Log(LOGDEBUG, "FrameMove ExternalCalls: %u, Sleep: %u", m_ProcessedExternalCalls, sleepTime);
+    }
+    else
+      m_ProcessedExternalCalls = 0;
   }
+
   if (processGUI && m_renderGUI)
   {
     m_skipGuiRender = false;
@@ -2771,6 +2806,8 @@ void CApplication::Stop(int exitCode)
 {
   try
   {
+    m_frameMoveGuard.unlock();
+
     CVariant vExitCode(CVariant::VariantTypeObject);
     vExitCode["exitcode"] = exitCode;
     CAnnouncementManager::GetInstance().Announce(System, "xbmc", "OnQuit", vExitCode);
@@ -4371,7 +4408,14 @@ void CApplication::Process()
   }
 
   // handle any active scripts
-  CScriptInvocationManager::GetInstance().Process();
+
+  {
+    // Allow processing of script threads to let them shut down properly.
+    CSingleExit ex(g_graphicsContext);
+    m_frameMoveGuard.unlock();
+    CScriptInvocationManager::GetInstance().Process();
+    m_frameMoveGuard.lock();
+  }
 
   // process messages, even if a movie is playing
   CApplicationMessenger::GetInstance().ProcessMessages();
