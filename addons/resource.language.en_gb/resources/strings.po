@@ -3069,7 +3069,12 @@ msgctxt "#680"
 msgid "Verbose logging for the [B]Video[/B] component"
 msgstr ""
 
-#empty strings from id 681 to 699
+#: xbmc/settings/AdvancedSettings.cpp
+msgctxt "#681"
+msgid "Verbose logging for the [B]Webserver[/B] component"
+msgstr ""
+
+#empty strings from id 682 to 699
 
 msgctxt "#700"
 msgid "Cleaning up library"
@@ -19131,4 +19136,24 @@ msgstr ""
 #: system/settings/settings.xml
 msgctxt "#38111"
 msgid "This category contains other settings for the GUI interface"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39000"
+msgid "HD and up"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39001"
+msgid "Accelerate MPEG2"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39002"
+msgid "Accelerate MPEG4"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39003"
+msgid "Accelerate h264"
 msgstr ""
