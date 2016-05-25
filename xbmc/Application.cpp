@@ -220,8 +220,6 @@
 #include "pictures/GUIWindowSlideShow.h"
 #include "windows/GUIWindowLoginScreen.h"
 
-#include "addons/binary/AddonInterfaceManager.h"
-
 using namespace ADDON;
 using namespace XFILE;
 #ifdef HAS_DVD_DRIVE
@@ -1150,7 +1148,6 @@ bool CApplication::Initialize()
       CJSONRPC::Initialize();
 #endif
       ADDON::CAddonMgr::GetInstance().StartServices(false);
-      CServiceBroker::GetAddonInterfaceManager().StartManager();
 
       // activate the configured start window
       int firstWindow = g_SkinInfo->GetFirstWindow();
@@ -1174,7 +1171,6 @@ bool CApplication::Initialize()
     CJSONRPC::Initialize();
 #endif
     ADDON::CAddonMgr::GetInstance().StartServices(false);
-    CServiceBroker::GetAddonInterfaceManager().StartManager();
   }
 
   g_sysinfo.Refresh();
@@ -2691,7 +2687,6 @@ void CApplication::FrameMove(bool processEvents, bool processGUI)
       unsigned int sleepTime = std::max(static_cast<unsigned int>(2), std::min(m_ProcessedExternalCalls >> 2, static_cast<unsigned int>(10)));
       Sleep(sleepTime);
       m_frameMoveGuard.lock();
-      CLog::Log(LOGDEBUG, "FrameMove ExternalCalls: %u, Sleep: %u", m_ProcessedExternalCalls, sleepTime);
     }
     else
       m_ProcessedExternalCalls = 0;
@@ -3242,20 +3237,12 @@ PlayBackRet CApplication::PlayFile(CFileItem item, const std::string& player, bo
     options.startpercent = item.GetProperty("StartPercent").asDouble(fallback);
   }
 
-  std::string newPlayer;
   if (bRestart)
   {
     // have to be set here due to playstack using this for starting the file
     options.starttime = item.m_lStartOffset / 75.0;
     if (m_itemCurrentFile->IsStack() && m_currentStack->Size() > 0 && m_itemCurrentFile->m_lStartOffset != 0)
       m_itemCurrentFile->m_lStartOffset = STARTOFFSET_RESUME; // to force fullscreen switching
-
-    if (!player.empty() && player != "default")
-      newPlayer = player;
-    else if (m_pPlayer->GetCurrentPlayer().empty())
-      newPlayer = CPlayerCoreFactory::GetInstance().GetDefaultPlayer(item);
-    else
-      newPlayer = m_pPlayer->GetCurrentPlayer();
   }
   else
   {
@@ -3319,11 +3306,6 @@ PlayBackRet CApplication::PlayFile(CFileItem item, const std::string& player, bo
 
       dbs.Close();
     }
-
-    if (player.empty())
-      newPlayer = CPlayerCoreFactory::GetInstance().GetDefaultPlayer(item);
-    else
-      newPlayer = player;
   }
 
   // this really aught to be inside !bRestart, but since PlayStack
@@ -3374,6 +3356,14 @@ PlayBackRet CApplication::PlayFile(CFileItem item, const std::string& player, bo
     if (dMsgCount > 0)
       CLog::LogF(LOGDEBUG,"Ignored %d playback thread messages", dMsgCount);
   }
+
+  std::string newPlayer;
+  if (!player.empty())
+    newPlayer = player;
+  else if (bRestart && !m_pPlayer->GetCurrentPlayer().empty())
+    newPlayer = m_pPlayer->GetCurrentPlayer();
+  else
+    newPlayer = CPlayerCoreFactory::GetInstance().GetDefaultPlayer(item);
 
   // We should restart the player, unless the previous and next tracks are using
   // one of the players that allows gapless playback (paplayer, VideoPlayer)
@@ -3559,7 +3549,6 @@ void CApplication::OnQueueNextItem()
   CLog::LogF(LOGDEBUG,"play state was %d, starting %d", m_ePlayState, m_bPlaybackStarting);
   if(m_bPlaybackStarting)
     return;
-
   // informs python script currently running that we are requesting the next track
   // (does nothing if python is not loaded)
 #ifdef HAS_PYTHON

@@ -138,7 +138,9 @@ endif()
 get_filename_component(ADDONS_DEFINITION_DIR "${ADDONS_DEFINITION_DIR}" ABSOLUTE)
 
 if(ADDON_SRC_PREFIX)
-  get_filename_component(ADDON_SRC_PREFIX "${ADDON_SRC_PREFIX}" ABSOLUTE)
+  if(NOT IS_ABSOLUTE ${ADDON_SRC_PREFIX})
+    get_filename_component(ADDON_SRC_PREFIX "${CMAKE_BINARY_DIR}/${ADDON_SRC_PREFIX}" ABSOLUTE)
+  endif()
   message(STATUS "Overriding addon source directory prefix: ${ADDON_SRC_PREFIX}")
 endif()
 
@@ -227,11 +229,6 @@ endif()
 # Track if at least one addon has been found. Everything else is likely an
 # error either in ADDONS_TO_BUILD or in the directory configuration.
 set(SUPPORTED_ADDON_FOUND FALSE)
-
-ExternalProject_Add(kodi-addon-dev-kit
-                    SOURCE_DIR ${CORE_SOURCE_DIR}/xbmc/addons/kodi-addon-dev-kit
-                    INSTALL_DIR ${DEPENDS_PATH}
-                    CMAKE_ARGS ${BUILD_ARGS})
 
 foreach(addon ${addons})
   if(NOT (addon MATCHES platforms.txt))
@@ -378,7 +375,7 @@ foreach(addon ${addons})
                                    ALWAYS 1)
 
           # add "kodi-platform" as a dependency to every addon
-          add_dependencies(${id} kodi-platform kodi-addon-dev-kit)
+          add_dependencies(${id} kodi-platform)
 
           set(${id}_DEPENDS_DIR ${SOURCE_DIR}/depends)
 

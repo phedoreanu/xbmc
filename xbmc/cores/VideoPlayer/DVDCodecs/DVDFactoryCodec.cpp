@@ -70,7 +70,6 @@ CDVDVideoCodec* CDVDFactoryCodec::OpenCodec(CDVDVideoCodec* pCodec, CDVDStreamIn
     }
 
     CLog::Log(LOGDEBUG, "FactoryCodec - Video: %s - Failed", pCodec->GetName());
-    pCodec->Dispose();
     delete pCodec;
   }
   catch(...)
@@ -92,7 +91,6 @@ CDVDAudioCodec* CDVDFactoryCodec::OpenCodec(CDVDAudioCodec* pCodec, CDVDStreamIn
     }
 
     CLog::Log(LOGDEBUG, "FactoryCodec - Audio: %s - Failed", pCodec->GetName());
-    pCodec->Dispose();
     delete pCodec;
   }
   catch(...)
@@ -114,7 +112,6 @@ CDVDOverlayCodec* CDVDFactoryCodec::OpenCodec(CDVDOverlayCodec* pCodec, CDVDStre
     }
 
     CLog::Log(LOGDEBUG, "FactoryCodec - Overlay: %s - Failed", pCodec->GetName());
-    pCodec->Dispose();
     delete pCodec;
   }
   catch(...)
