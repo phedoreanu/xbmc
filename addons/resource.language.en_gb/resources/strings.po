@@ -7841,6 +7841,7 @@ msgid "Add"
 msgstr ""
 
 #: addons/skin.estuary/1080i/Custom_1106_VideoOSDSettings.xml
+#: addons/skin.estuary/1080i/Custom_1105_MusicOSDSettings.xml
 msgctxt "#15020"
 msgid "Audio DSP manager"
 msgstr ""
@@ -7955,6 +7956,7 @@ msgstr ""
 #: xbmc/pvr/windows/GUIWindowPVRChannels.cpp
 #: xbmc/pvr/windows/GUIWindowPVRRecordings.cpp
 #: xbmc/music/windows/GUIWindowMusicBase.cpp
+#: addons/skin.estuary/1080i/Custom_1105_MusicOSDSettings.xml
 msgctxt "#15047"
 msgid "Audio DSP settings"
 msgstr ""
@@ -19141,6 +19143,8 @@ msgstr ""
 msgctxt "#38111"
 msgid "This category contains other settings for the GUI interface"
 msgstr ""
+
+#empty strings from id 38112 to 38999
 
 #: system/settings/settings.xml
 msgctxt "#39000"
