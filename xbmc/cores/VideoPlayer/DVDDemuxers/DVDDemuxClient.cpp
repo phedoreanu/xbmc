@@ -416,8 +416,8 @@ void CDVDDemuxClient::RequestStreams()
           streamVideo->m_parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
       }
 
-      streamVideo->iFpsScale       = source->irFpsScale;
-      streamVideo->iFpsRate        = source->irFpsRate;
+      streamVideo->iFpsScale       = source->iFpsScale;
+      streamVideo->iFpsRate        = source->iFpsRate;
       streamVideo->iHeight         = source->iHeight;
       streamVideo->iWidth          = source->iWidth;
       streamVideo->fAspect         = source->fAspect;
