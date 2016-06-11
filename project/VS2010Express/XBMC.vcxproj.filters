@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="win32">
@@ -1927,9 +1927,6 @@
       <Filter>filesystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\FileFactory.cpp">
-      <Filter>filesystem</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\filesystem\FileReaderFile.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\FTPDirectory.cpp">
@@ -5085,9 +5082,6 @@
     <ClInclude Include="..\..\xbmc\filesystem\FileFactory.h">
       <Filter>filesystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\FileReaderFile.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\FTPDirectory.h">
       <Filter>filesystem</Filter>
     </ClInclude>
@@ -6355,6 +6349,9 @@
     </ClInclude>
     <ClInclude Include="..\..\xbmc\input\InputCodingTableKorean.h">
       <Filter>input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\utils\Random.h">
+      <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\music\tags\MusicInfoTagLoaderFFmpeg.h">
       <Filter>music\tags</Filter>
