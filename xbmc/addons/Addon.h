@@ -70,10 +70,10 @@ public:
   std::string libname;
   std::string author;
   std::string source;
-  //TODO: fix parts relying on mutating these
+  //! @todo fix parts relying on mutating these
   mutable std::string path;
   mutable std::string icon;
-  mutable std::string changelog;
+  std::string changelog;
   mutable std::string fanart;
   std::string disclaimer;
   ADDONDEPS dependencies;

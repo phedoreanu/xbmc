@@ -29,10 +29,11 @@
 #include "messaging/IMessageTarget.h"
 #include "ServiceManager.h"
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
-#include <atomic>
+#include <vector>
 
 class CAction;
 class CFileItem;
@@ -58,7 +59,6 @@ namespace PLAYLIST
 }
 
 #include "cores/IPlayerCallback.h"
-#include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "settings/lib/ISettingsHandler.h"
 #include "settings/lib/ISettingCallback.h"
 #include "settings/lib/ISubSettings.h"
@@ -76,7 +76,7 @@ namespace PLAYLIST
 #include "threads/Thread.h"
 
 #include "ApplicationPlayer.h"
-#include "interfaces/IActionListener.h"
+#include "FileItem.h"
 
 class CSeekHandler;
 class CInertialScrollingHandler;
@@ -84,6 +84,7 @@ class DPMSSupport;
 class CSplash;
 class CBookmark;
 class CNetwork;
+class IActionListener;
 
 namespace VIDEO
 {

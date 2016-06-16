@@ -21,9 +21,12 @@
  */
 
 #include <memory>
+#include <string>
+#include <vector>
+
+#include "threads/CriticalSection.h"
 #include "threads/SystemClock.h"
 #include "guilib/Resolution.h"
-#include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "cores/IPlayer.h"
 
 typedef enum
