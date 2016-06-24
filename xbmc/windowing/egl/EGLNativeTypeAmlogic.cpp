@@ -58,12 +58,9 @@ bool CEGLNativeTypeAmlogic::CheckCompatibility()
 {
   std::string name;
   std::string modalias = "/sys/class/graphics/" + m_framebuffer_name + "/device/modalias";
-  std::string meson = "meson";
-  std::string fb = "fb";
 
   SysfsUtils::GetString(modalias, name);
-  StringUtils::Trim(name);
-  if (name.find(meson) != std::string::npos && name.find(fb) != std::string::npos)
+  if (name.find("meson") != std::string::npos)
     return true;
   return false;
 }
