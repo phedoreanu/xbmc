@@ -130,11 +130,11 @@ namespace PVR
     /*!
      * @brief Delete all timers on a channel.
      * @param channel The channel to delete the timers for.
-     * @param bDeleteRepeating True to delete repeating events too, false otherwise.
+     * @param bDeleteTimerRules True to delete timer rules too, false otherwise.
      * @param bCurrentlyActiveOnly True to delete timers that are currently running only.
      * @return True if timers any were deleted, false otherwise.
      */
-    bool DeleteTimersOnChannel(const CPVRChannelPtr &channel, bool bDeleteRepeating = true, bool bCurrentlyActiveOnly = false);
+    bool DeleteTimersOnChannel(const CPVRChannelPtr &channel, bool bDeleteTimerRules = true, bool bCurrentlyActiveOnly = false);
 
     /*!
      * @return Next event time (timer or daily wake up)
@@ -210,6 +210,8 @@ namespace PVR
     CPVRTimerInfoTagPtr GetByClient(int iClientId, unsigned int iClientTimerId) const;
     bool GetRootDirectory(const CPVRTimersPath &path, CFileItemList &items) const;
     bool GetSubDirectory(const CPVRTimersPath &path, CFileItemList &items) const;
+    bool SetEpgTagTimer(const CPVRTimerInfoTagPtr &timer);
+    bool ClearEpgTagTimer(const CPVRTimerInfoTagPtr &timer);
 
     CCriticalSection  m_critSection;
     bool              m_bIsUpdating;
