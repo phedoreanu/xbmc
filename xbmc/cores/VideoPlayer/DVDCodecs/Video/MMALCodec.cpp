@@ -113,6 +113,9 @@ CMMALVideo::CMMALVideo(CProcessInfo &processInfo) : CDVDVideoCodec(processInfo)
   m_fps = 0.0f;
   m_num_decoded = 0;
   m_codecControlFlags = 0;
+  m_got_eos = false;
+  m_packet_num = 0;
+  m_packet_num_eos = ~0;
 }
 
 CMMALVideo::~CMMALVideo()
@@ -239,7 +242,7 @@ void CMMALVideo::dec_output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
 {
   if (!(buffer->cmd == 0 && buffer->length > 0))
     if (g_advancedSettings.CanLogComponent(LOGVIDEO))
-      CLog::Log(LOGDEBUG, "%s::%s port:%p buffer %p, len %d cmd:%x", CLASSNAME, __func__, port, buffer, buffer->length, buffer->cmd);
+      CLog::Log(LOGDEBUG, "%s::%s port:%p buffer %p, len %d cmd:%x flags:%x", CLASSNAME, __func__, port, buffer, buffer->length, buffer->cmd, buffer->flags);
 
   bool kept = false;
 
@@ -284,6 +287,12 @@ void CMMALVideo::dec_output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
         kept = true;
       }
     }
+    if (buffer->flags & MMAL_BUFFER_HEADER_FLAG_EOS)
+    {
+      CSingleLock lock(m_output_mutex);
+      m_got_eos = true;
+      m_output_cond.notifyAll();
+    }
   }
   else if (buffer->cmd == MMAL_EVENT_FORMAT_CHANGED)
   {
@@ -323,7 +332,7 @@ bool CMMALVideo::change_dec_output_format()
 
   mmal_format_copy(m_dec_output->format, m_es_format);
 
-  status = mmal_port_parameter_set_boolean(m_dec_output, MMAL_PARAMETER_ZERO_COPY,  MMAL_TRUE);
+  status = mmal_port_parameter_set_boolean(m_dec_output, MMAL_PARAMETER_ZERO_COPY, MMAL_TRUE);
   if (status != MMAL_SUCCESS)
     CLog::Log(LOGERROR, "%s::%s Failed to enable zero copy mode on %s (status=%x %s)", CLASSNAME, __func__, m_dec_output->name, status, mmal_status_to_string(status));
 
@@ -387,7 +396,7 @@ bool CMMALVideo::CreateDeinterlace(EINTERLACEMETHOD interlace_method)
   m_deint_input->userdata = (struct MMAL_PORT_USERDATA_T *)this;
 
   // Image_fx assumed 3 frames of context. simple deinterlace doesn't require this
-  status = mmal_port_parameter_set_uint32(m_deint_input, MMAL_PARAMETER_EXTRA_BUFFERS, GetAllowedReferences() - 5 + advanced_deinterlace ? 2:0);
+  status = mmal_port_parameter_set_uint32(m_deint_input, MMAL_PARAMETER_EXTRA_BUFFERS, GetAllowedReferences() - 4 + advanced_deinterlace ? 2:0);
   if (status != MMAL_SUCCESS)
     CLog::Log(LOGERROR, "%s::%s Failed to enable extra buffers on %s (status=%x %s)", CLASSNAME, __func__, m_deint_input->name, status, mmal_status_to_string(status));
 
@@ -408,7 +417,7 @@ bool CMMALVideo::CreateDeinterlace(EINTERLACEMETHOD interlace_method)
 
   mmal_format_copy(m_deint->output[0]->format, m_es_format);
 
-  status = mmal_port_parameter_set_boolean(m_deint->output[0], MMAL_PARAMETER_ZERO_COPY,  MMAL_TRUE);
+  status = mmal_port_parameter_set_boolean(m_deint->output[0], MMAL_PARAMETER_ZERO_COPY, MMAL_TRUE);
   if (status != MMAL_SUCCESS)
     CLog::Log(LOGERROR, "%s::%s Failed to enable zero copy mode on %s (status=%x %s)", CLASSNAME, __func__, m_deint->output[0]->name, status, mmal_status_to_string(status));
 
@@ -683,6 +692,10 @@ bool CMMALVideo::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
   if (status != MMAL_SUCCESS)
     CLog::Log(LOGERROR, "%s::%s Failed to configure max num callbacks on %s (status=%x %s)", CLASSNAME, __func__, m_dec_input->name, status, mmal_status_to_string(status));
 
+  status = mmal_port_parameter_set_boolean(m_dec_input, MMAL_PARAMETER_ZERO_COPY,  MMAL_TRUE);
+  if (status != MMAL_SUCCESS)
+    CLog::Log(LOGERROR, "%s::%s Failed to enable zero copy mode on %s (status=%x %s)", CLASSNAME, __func__, m_dec_input->name, status, mmal_status_to_string(status));
+
   status = mmal_port_format_commit(m_dec_input);
   if (status != MMAL_SUCCESS)
   {
@@ -777,11 +790,18 @@ int CMMALVideo::Decode(uint8_t* pData, int iSize, double dts, double pts)
 
   MMAL_BUFFER_HEADER_T *buffer;
   MMAL_STATUS_T status;
-
+  bool drain = (m_codecControlFlags & DVD_CODEC_CTRL_DRAIN) ? true : false;
+  bool send_eos = drain && !m_got_eos && m_packet_num_eos != m_packet_num;
+  // we don't get an EOS response if no packets have been sent
+  if (m_packet_num == 0)
+  {
+    send_eos = false;
+    m_got_eos = true;
+  }
   Prime();
   while (1)
   {
-     if (pData)
+     if (pData || send_eos)
      {
        // 500ms timeout
        {
@@ -804,17 +824,25 @@ int CMMALVideo::Decode(uint8_t* pData, int iSize, double dts, double pts)
        if (m_dropState)
          buffer->flags |= MMAL_BUFFER_HEADER_FLAG_USER3;
 
-       memcpy(buffer->data, pData, buffer->length);
+       if (pData)
+         memcpy(buffer->data, pData, buffer->length);
        iSize -= buffer->length;
        pData += buffer->length;
 
        if (iSize == 0)
+       {
+         m_packet_num++;
          buffer->flags |= MMAL_BUFFER_HEADER_FLAG_FRAME_END;
-
+         if (send_eos)
+         {
+           buffer->flags |= MMAL_BUFFER_HEADER_FLAG_EOS;
+           m_packet_num_eos = m_packet_num;
+           m_got_eos = false;
+         }
+       }
        if (g_advancedSettings.CanLogComponent(LOGVIDEO))
          CLog::Log(LOGDEBUG, "%s::%s - %-8p %-6d/%-6d dts:%.3f pts:%.3f flags:%x ready_queue(%d)",
             CLASSNAME, __func__, buffer, buffer->length, iSize, dts == DVD_NOPTS_VALUE ? 0.0 : dts*1e-6, pts == DVD_NOPTS_VALUE ? 0.0 : pts*1e-6, buffer->flags, m_output_ready.size());
-       assert((int)buffer->length > 0);
        status = mmal_port_send_buffer(m_dec_input, buffer);
        if (status != MMAL_SUCCESS)
        {
@@ -866,36 +894,28 @@ int CMMALVideo::Decode(uint8_t* pData, int iSize, double dts, double pts)
   bool full = queued > DVD_MSEC_TO_TIME(1000);
   int ret = 0;
 
-  unsigned int pics = m_output_ready.size();
-  if (m_preroll && (pics >= GetAllowedReferences() || m_codecControlFlags & DVD_CODEC_CTRL_DRAIN))
-    m_preroll = false;
-  if (pics > 0 && !m_preroll)
-    ret |= VC_PICTURE;
-  if ((m_preroll || pics <= 1) && mmal_queue_length(m_dec_input_pool->queue) > 0 && !(m_codecControlFlags & DVD_CODEC_CTRL_DRAIN))
-    ret |= VC_BUFFER;
-
-  bool slept = false;
-  if (!ret)
+  XbmcThreads::EndTime delay(500);
+  while (!ret && !delay.IsTimePast())
   {
-    slept = true;
+    unsigned int pics = m_output_ready.size();
+    if (m_preroll && (pics >= GetAllowedReferences() || drain))
+      m_preroll = false;
+    if (pics > 0 && !m_preroll)
+      ret |= VC_PICTURE;
+    if ((m_preroll || pics <= 1) && mmal_queue_length(m_dec_input_pool->queue) > 0 && (!drain || m_got_eos || m_packet_num_eos != m_packet_num))
+      ret |= VC_BUFFER;
+    if (!ret)
     {
       // otherwise we busy spin
       lock.Leave();
       CSingleLock output_lock(m_output_mutex);
-      m_output_cond.wait(output_lock, 30);
+      m_output_cond.wait(output_lock, delay.MillisLeft());
       lock.Enter();
     }
-    unsigned int pics = m_output_ready.size();
-    if (m_preroll && (pics >= GetAllowedReferences() || m_codecControlFlags & DVD_CODEC_CTRL_DRAIN))
-      m_preroll = false;
-    if (pics > 0 && !m_preroll)
-      ret |= VC_PICTURE;
-    if ((m_preroll || pics <= 1) && (mmal_queue_length(m_dec_input_pool->queue) > 0 || m_codecControlFlags & DVD_CODEC_CTRL_DRAIN))
-      ret |= VC_BUFFER;
   }
 
   if (g_advancedSettings.CanLogComponent(LOGVIDEO))
-    CLog::Log(LOGDEBUG, "%s::%s - ret(%x) pics(%d) inputs(%d) slept(%d) queued(%.2f) (%.2f:%.2f) full(%d) flags(%x) preroll(%d)", CLASSNAME, __func__, ret, m_output_ready.size(), mmal_queue_length(m_dec_input_pool->queue), slept, queued*1e-6, m_demuxerPts*1e-6, m_decoderPts*1e-6, full, m_codecControlFlags,  m_preroll);
+    CLog::Log(LOGDEBUG, "%s::%s - ret(%x) pics(%d) inputs(%d) slept(%2d) queued(%.2f) (%.2f:%.2f) full(%d) flags(%x) preroll(%d) eos(%d %d/%d)", CLASSNAME, __func__, ret, m_output_ready.size(), mmal_queue_length(m_dec_input_pool->queue), 500-delay.MillisLeft(), queued*1e-6, m_demuxerPts*1e-6, m_decoderPts*1e-6, full, m_codecControlFlags,  m_preroll, m_got_eos, m_packet_num, m_packet_num_eos);
 
   return ret;
 }
@@ -968,6 +988,10 @@ void CMMALVideo::Reset(void)
   m_demuxerPts = DVD_NOPTS_VALUE;
   m_codecControlFlags = 0;
   m_dropState = false;
+  m_num_decoded = 0;
+  m_got_eos = false;
+  m_packet_num = 0;
+  m_packet_num_eos = ~0;
   m_preroll = !m_hints.stills && (m_speed == DVD_PLAYSPEED_NORMAL || m_speed == DVD_PLAYSPEED_PAUSE);
 }
 

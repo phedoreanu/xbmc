@@ -8179,7 +8179,7 @@ msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#15108"
-msgid "GUI sounds"
+msgid "GUI Sounds"
 msgstr ""
 
 msgctxt "#15109"
@@ -12473,7 +12473,7 @@ msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#20458"
-msgid "Group movies in sets"
+msgid "Show movie sets"
 msgstr ""
 
 #: xbmc/dialogs/GUIDialogMediaFilter.cpp
@@ -12528,7 +12528,7 @@ msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#20470"
-msgid "Use movie sets for single movies"
+msgid "Include sets containing a single movie"
 msgstr ""
 
 #: system/settings/settings.xml
@@ -13799,6 +13799,7 @@ msgid "Media sources"
 msgstr ""
 
 #. Name of an add-on type
+#: system/settings/settings.xml
 #: xbmc/addons/Addon.cpp
 msgctxt "#24006"
 msgid "GUI sounds"
@@ -18502,6 +18503,8 @@ msgctxt "#36552"
 msgid "Defines the number of presentation buffers used by the graphics driver. Select 2 if the driver uses double buffering or 3 for triple buffering."
 msgstr ""
 
+#empty strings from id 36553 to 36559
+
 #: system/settings/settings.xml
 msgctxt "#36560"
 msgid "Colour management"
@@ -18601,6 +18604,8 @@ msgctxt "#36577"
 msgid "TODO: Lookup table size description"
 msgstr ""
 
+#empty strings from id 36578 to 36579
+
 # Dialog title for 3D LUT file picker
 #: xbmc/video/dialogs/GUIDialogVideoSettings.cpp
 msgctxt "#36580"
@@ -18613,8 +18618,8 @@ msgctxt "#36581"
 msgid "ICC Profile"
 msgstr ""
 
-#: xbmc/video/dialogs/GUIDialogVideoSettings.cpp
 #. gamma type labels
+#: xbmc/video/dialogs/GUIDialogVideoSettings.cpp
 msgctxt "#36582"
 msgid "BT.1886"
 msgstr ""
@@ -18631,8 +18636,8 @@ msgctxt "#36585"
 msgid "Absolute"
 msgstr ""
 
-#: xbmc/video/dialogs/GUIDialogCMSSettings.cpp
 #. whitepoint labels
+#: xbmc/video/dialogs/GUIDialogCMSSettings.cpp
 msgctxt "#36586"
 msgid "D65 (standard)"
 msgstr ""
@@ -18641,8 +18646,8 @@ msgctxt "#36587"
 msgid "D93 (Japanese NTSC)"
 msgstr ""
 
-#: xbmc/video/dialogs/GUIDialogCMSSettings.cpp
 #. primaries labels
+#: xbmc/video/dialogs/GUIDialogCMSSettings.cpp
 msgctxt "#36588"
 msgid "Automatic"
 msgstr ""
@@ -18667,8 +18672,8 @@ msgctxt "#36593"
 msgid "HDTV 1988 (SMPTE 240M)"
 msgstr ""
 
-#: xbmc/video/dialogs/GUIDialogCMSSettings.cpp
 #. 3D LUT size labels
+#: xbmc/video/dialogs/GUIDialogCMSSettings.cpp
 msgctxt "#36594"
 msgid "16x16x16"
 msgstr ""
