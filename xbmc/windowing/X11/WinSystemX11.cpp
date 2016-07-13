@@ -37,6 +37,8 @@
 #include "cores/VideoRenderers/RenderManager.h"
 #include "utils/TimeUtils.h"
 #include "utils/StringUtils.h"
+#include "utils/AMLUtils.h"
+#include "utils/SysfsUtils.h"
 #include "settings/Settings.h"
 #include "windowing/WindowingFactory.h"
 #include "CompileInfo.h"
@@ -392,47 +394,77 @@ void CWinSystemX11::UpdateResolutions()
     std::vector<XMode>::iterator modeiter;
     CLog::Log(LOGINFO, "Output '%s' has %" PRIdS" modes", out->name.c_str(), out->modes.size());
 
-    for (modeiter = out->modes.begin() ; modeiter!=out->modes.end() ; modeiter++)
-    {
-      XMode mode = *modeiter;
-      CLog::Log(LOGINFO, "ID:%s Name:%s Refresh:%f Width:%d Height:%d",
-                mode.id.c_str(), mode.name.c_str(), mode.hz, mode.w, mode.h);
-      RESOLUTION_INFO res;
-      res.iScreen = 0; // not used by X11
-      res.dwFlags = 0;
-      res.iWidth  = mode.w;
-      res.iHeight = mode.h;
-      res.iScreenWidth  = mode.w;
-      res.iScreenHeight = mode.h;
-      if (mode.IsInterlaced())
-        res.dwFlags |= D3DPRESENTFLAG_INTERLACED;
+    if (aml_present()) {
+      std::string valstr;
+      SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr);
+      std::vector<std::string> probe_str = StringUtils::Split(valstr, "\n");
 
-      if (!m_bIsRotated)
+      for (std::vector<std::string>::const_iterator i = probe_str.begin(); i != probe_str.end(); ++i)
       {
+        RESOLUTION_INFO res;
+        if (aml_mode_to_resolution(i->c_str(), &res))
+        {
+          res.iScreen      = 0; // not used by X11
+          res.fPixelRatio  = 1.0f;
+          res.strMode      = StringUtils::Format("%s: %s @ %.2fHz", out->name.c_str(), i->c_str(), res.fRefreshRate);
+          res.strOutput    = out->name;
+          res.strId        = 0x40; // Dummy strID
+          res.iSubtitles   = (int)(0.965 * res.iHeight);
+          res.bFullScreen  = true;
+
+          CLog::Log(LOGINFO, "ID:%s Name:%s Refresh:%f Width:%d Height:%d",
+              res.strId.c_str(), res.strOutput.c_str(), res.fRefreshRate, res.iWidth, res.iHeight);
+
+          g_graphicsContext.ResetOverscan(res);
+          CDisplaySettings::GetInstance().AddResolutionInfo(res);
+        }
+      }
+
+    }
+    else
+    {
+      for (modeiter = out->modes.begin() ; modeiter!=out->modes.end() ; modeiter++)
+      {
+        XMode mode = *modeiter;
+        CLog::Log(LOGINFO, "ID:%s Name:%s Refresh:%f Width:%d Height:%d",
+            mode.id.c_str(), mode.name.c_str(), mode.hz, mode.w, mode.h);
+        RESOLUTION_INFO res;
+        res.iScreen = 0; // not used by X11
+        res.dwFlags = 0;
         res.iWidth  = mode.w;
         res.iHeight = mode.h;
+        res.iScreenWidth  = mode.w;
+        res.iScreenHeight = mode.h;
+        if (mode.IsInterlaced())
+          res.dwFlags |= D3DPRESENTFLAG_INTERLACED;
+
+        if (!m_bIsRotated)
+        {
+          res.iWidth  = mode.w;
+          res.iHeight = mode.h;
+        }
+        else
+        {
+          res.iWidth  = mode.h;
+          res.iHeight = mode.w;
+        }
+        if (mode.h>0 && mode.w>0 && out->hmm>0 && out->wmm>0)
+          res.fPixelRatio = ((float)out->wmm/(float)mode.w) / (((float)out->hmm/(float)mode.h));
+        else
+          res.fPixelRatio = 1.0f;
+
+        CLog::Log(LOGINFO, "Pixel Ratio: %f", res.fPixelRatio);
+
+        res.strMode      = StringUtils::Format("%s: %s @ %.2fHz", out->name.c_str(), mode.name.c_str(), mode.hz);
+        res.strOutput    = out->name;
+        res.strId        = mode.id;
+        res.iSubtitles   = (int)(0.965*mode.h);
+        res.fRefreshRate = mode.hz;
+        res.bFullScreen  = true;
+
+        g_graphicsContext.ResetOverscan(res);
+        CDisplaySettings::GetInstance().AddResolutionInfo(res);
       }
-      else
-      {
-        res.iWidth  = mode.h;
-        res.iHeight = mode.w;
-      }
-      if (mode.h>0 && mode.w>0 && out->hmm>0 && out->wmm>0)
-        res.fPixelRatio = ((float)out->wmm/(float)mode.w) / (((float)out->hmm/(float)mode.h));
-      else
-        res.fPixelRatio = 1.0f;
-
-      CLog::Log(LOGINFO, "Pixel Ratio: %f", res.fPixelRatio);
-
-      res.strMode      = StringUtils::Format("%s: %s @ %.2fHz", out->name.c_str(), mode.name.c_str(), mode.hz);
-      res.strOutput    = out->name;
-      res.strId        = mode.id;
-      res.iSubtitles   = (int)(0.965*mode.h);
-      res.fRefreshRate = mode.hz;
-      res.bFullScreen  = true;
-
-      g_graphicsContext.ResetOverscan(res);
-      CDisplaySettings::GetInstance().AddResolutionInfo(res);
     }
   }
   CDisplaySettings::GetInstance().ApplyCalibrations();
