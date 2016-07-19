@@ -22,6 +22,7 @@
 
 #include <cstdlib> // std::abs(int) prototype
 #include <algorithm>
+#include <float.h>
 #include "BaseRenderer.h"
 #include "settings/DisplaySettings.h"
 #include "settings/MediaSettings.h"
@@ -32,6 +33,9 @@
 #include "utils/log.h"
 #include "utils/MathUtils.h"
 #include "utils/SystemInfo.h"
+#include "utils/AMLUtils.h"
+#include "utils/StringUtils.h"
+#include "utils/SysfsUtils.h"
 #include "settings/AdvancedSettings.h"
 #include "cores/VideoRenderers/RenderFlags.h"
 
@@ -95,6 +99,33 @@ void CBaseRenderer::ChooseBestResolution(float fps)
 
     CLog::Log(LOGNOTICE, "Display resolution ADJUST : %s (%d) (weight: %.3f)",
         g_graphicsContext.GetResInfo(m_resolution).strMode.c_str(), m_resolution, weight);
+
+    if (aml_present())
+    {
+      std::string valstr;
+      SysfsUtils::GetString("/sys/class/amhdmitx/amhdmitx0/disp_cap", valstr);
+      std::vector<std::string> probe_str = StringUtils::Split(valstr, "\n");
+
+      RESOLUTION_INFO desktop = CDisplaySettings::GetInstance().GetResolutionInfo(RES_DESKTOP);
+      RESOLUTION_INFO res;
+      for (std::vector<std::string>::const_iterator i = probe_str.begin(); i != probe_str.end(); ++i)
+      {
+        if (aml_mode_to_resolution(i->c_str(), &res))
+        {
+          // Finding suitable frame rate which is same as desktop resolution
+          if (res.iWidth == desktop.iWidth &&
+              res.iHeight == desktop.iHeight &&
+              res.iScreenWidth == desktop.iScreenWidth &&
+              res.iScreenHeight == desktop.iScreenHeight &&
+              (res.dwFlags & D3DPRESENTFLAG_MODEMASK) == (desktop.dwFlags & D3DPRESENTFLAG_MODEMASK) &&
+              fabs(res.fRefreshRate - g_graphicsContext.GetResInfo(m_resolution).fRefreshRate) < FLT_EPSILON)
+          {
+            CLog::Log(LOGNOTICE, "Found suitable resolution %s", res.strMode.c_str());
+            SysfsUtils::SetString("/sys/class/display/mode", i->c_str());
+          }
+        }
+      }
+    }
   }
   else
 #endif
