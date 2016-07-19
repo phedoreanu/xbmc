@@ -20,6 +20,7 @@
 
 #include "TestBasicEnvironment.h"
 #include "TestUtils.h"
+#include "cores/DataCacheCore.h"
 #include "cores/AudioEngine/Engines/ActiveAE/AudioDSPAddons/ActiveAEDSP.h"
 #include "filesystem/Directory.h"
 #include "filesystem/File.h"
@@ -92,7 +93,6 @@ void TestBasicEnvironment::SetUp()
   if (!CreateDirectory(lpTempPathBuffer, NULL))
     SetUpError();
   CSpecialProtocol::SetTempPath(lpTempPathBuffer);
-  CWIN32Util::ExtendDllPath(); //Needed for delay loading on windows
 #else
   char buf[MAX_PATH];
   char *tmp;
