@@ -240,9 +240,9 @@ target_compile_options(compileinfo PRIVATE "${SYSTEM_DEFINES}")
 
 # RC File
 if(WIN32)
-  configure_file(${CORE_SOURCE_DIR}/xbmc/win32/XBMC_PC.rc.in
-                 ${CORE_BUILD_DIR}/xbmc/win32/XBMC_PC.rc @ONLY)
-  add_library(resources OBJECT ${CORE_BUILD_DIR}/xbmc/win32/XBMC_PC.rc)
+  configure_file(${CORE_SOURCE_DIR}/xbmc/platform/win32/XBMC_PC.rc.in
+                 ${CORE_BUILD_DIR}/xbmc/platform/win32/XBMC_PC.rc @ONLY)
+  add_library(resources OBJECT ${CORE_BUILD_DIR}/xbmc/platform/win32/XBMC_PC.rc)
   target_include_directories(resources PRIVATE ${CORE_SOURCE_DIR}/tools/windows/packaging/media)
   set(RESOURCES $<TARGET_OBJECTS:resources>)
 endif()
@@ -363,13 +363,6 @@ endif()
 # Platform specific additional extra targets
 if(EXISTS ${PROJECT_SOURCE_DIR}/scripts/${CORE_SYSTEM_NAME}/ExtraTargets.cmake)
   include(${PROJECT_SOURCE_DIR}/scripts/${CORE_SYSTEM_NAME}/ExtraTargets.cmake)
-endif()
-
-# WiiRemote
-if(ENABLE_EVENTCLIENTS)
-  if(CORE_SYSTEM_NAME STREQUAL linux)
-    add_subdirectory(${CORE_SOURCE_DIR}/tools/EventClients/Clients/WiiRemote build/WiiRemote)
-  endif()
 endif()
 
 include(scripts/${CORE_SYSTEM_NAME}/Install.cmake)
