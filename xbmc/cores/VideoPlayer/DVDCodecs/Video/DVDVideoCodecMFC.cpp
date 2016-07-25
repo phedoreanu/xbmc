@@ -447,9 +447,9 @@ void CDVDVideoCodecMFC::SetDropState(bool bDrop) {
   debug_log(LOGDEBUG, "%s::%s - setting state to %d", CLASSNAME, __func__, bDrop);
   m_bDropPictures = bDrop;
   if (m_bDropPictures)
-    m_videoBuffer.iFlags =  DVP_FLAG_DROPPED;
+    m_videoBuffer.iFlags |= DVP_FLAG_DROPPED;
   else
-    m_videoBuffer.iFlags =  DVP_FLAG_ALLOCATED;
+    m_videoBuffer.iFlags &= ~DVP_FLAG_DROPPED;
 
 }
 
