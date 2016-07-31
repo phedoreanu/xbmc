@@ -17,8 +17,6 @@
   Name "${APP_NAME}"
   OutFile "${APP_NAME}Setup-${app_revision}-${app_branch}.exe"
 
-  XPStyle on
-  
   ;Default installation folder
   InstallDir "$PROGRAMFILES\${APP_NAME}"
 
@@ -27,6 +25,20 @@
 
   ;Request application privileges for Windows Vista
   RequestExecutionLevel admin
+
+  InstProgressFlags smooth
+  
+  ; Installer file properties
+  VIProductVersion                   ${VERSION_NUMBER}
+  VIAddVersionKey "ProductName"      "${APP_NAME}"
+  VIAddVersionKey "Comments"         "This application and its source code are freely distributable."
+  VIAddVersionKey "LegalCopyright"   "The trademark is owned by ${COMPANY_NAME}"
+  VIAddVersionKey "CompanyName"      "${COMPANY_NAME}"
+  VIAddVersionKey "FileDescription"  "${APP_NAME} ${VERSION_NUMBER} Setup"
+  VIAddVersionKey "FileVersion"      "${VERSION_NUMBER}"
+  VIAddVersionKey "ProductVersion"   "${VERSION_NUMBER}"
+  VIAddVersionKey "LegalTrademarks"  "${APP_NAME}"
+  ;VIAddVersionKey "OriginalFilename" "${APP_NAME}Setup-${app_revision}-${app_branch}.exe"
 
 ;--------------------------------
 ;Variables
@@ -228,10 +240,6 @@ Section "${APP_NAME}" SecAPP
   SetOutPath "$INSTDIR\media"
   File /r "${app_root}\application\media\*.*"
   SetOutPath "$INSTDIR\system"
-  ; remove leftover from old Kodi installation
-  ${If} ${FileExists} "$INSTDIR\system\webserver"
-    RMDir /r "$INSTDIR\system\webserver"
-  ${EndIf}
   File /r "${app_root}\application\system\*.*"
   SetOutPath "$INSTDIR\userdata"
   File /r "${app_root}\application\userdata\*.*"
@@ -271,7 +279,7 @@ Section "${APP_NAME}" SecAPP
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" \
                  "DisplayIcon" "$INSTDIR\${APP_NAME}.exe,0"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" \
-                 "Publisher" "${COMPANY}"
+                 "Publisher" "${COMPANY_NAME}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" \
                  "HelpLink" "${WEBSITE}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}" \
@@ -293,7 +301,7 @@ SectionEnd
 ;Descriptions
 
   ;Language strings
-  LangString DESC_SecAPP ${LANG_ENGLISH} "${APP_NAME}"
+  LangString DESC_SecAPP ${LANG_ENGLISH} "${APP_NAME} ${VERSION_NUMBER}"
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
@@ -370,28 +378,7 @@ SectionEnd
 ;vs redist installer Section
 SectionGroup "Microsoft Visual C++ packages" SEC_VCREDIST
 
-Section "VS2010 C++ re-distributable Package (x86)" SEC_VCREDIST2
-  DetailPrint "Running VS2010 re-distributable setup..."
-  SectionIn 1 2 #section is in install type Full 
-  SetOutPath "$TEMP\vc2010"
-  File "${app_root}\..\dependencies\vcredist\2010\vcredist_x86.exe"
-  ExecWait '"$TEMP\vc2010\vcredist_x86.exe" /q /norestart' $VSRedistSetupError
-  RMDir /r "$TEMP\vc2010"
-  DetailPrint "Finished VS2010 re-distributable setup"
-SectionEnd
-
-Section "VS2013 C++ re-distributable Package (x86)" SEC_VCREDIST3
-DetailPrint "Running VS2013 re-distributable setup..."
-  SectionIn 1 2 #section is in install type Full
-  SetOutPath "$TEMP\vc2013"
-  File "${app_root}\..\dependencies\vcredist\2013\vcredist_x86.exe"
-  ExecWait '"$TEMP\vc2013\vcredist_x86.exe" /install /quiet /norestart' $VSRedistSetupError
-  RMDir /r "$TEMP\vc2013"
-  DetailPrint "Finished VS2013 re-distributable setup"
-  SetOutPath "$INSTDIR"
-SectionEnd
-
-Section "VS2015 C++ re-distributable Package (x86)" SEC_VCREDIST4
+Section "VS2015 C++ re-distributable Package (x86)" SEC_VCREDIST1
 DetailPrint "Running VS2015 re-distributable setup..."
   SectionIn 1 2 #section is in install type Full
   SetOutPath "$TEMP\vc2015"
