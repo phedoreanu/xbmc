@@ -8502,7 +8502,14 @@ msgctxt "#16039"
 msgid "Off"
 msgstr ""
 
-#empty strings from id 16040 to 16099
+#empty strings from id 16040 to 16040
+
+#: xbmc/guilib/GUIRadioButtonControl.cpp"
+msgctxt "#16041"		
+msgid "On"		
+msgstr ""		
+
+#empty strings from id 16042 to 16099
 
 #: xbmc/video/windows/GUIWindowVideoNav.cpp
 msgctxt "#16100"
@@ -15943,7 +15950,19 @@ msgctxt "#35050"
 msgid "Controller profiles"
 msgstr ""
 
-#empty strings from id 35051 to 35054
+#. Setting to test rumble
+#: system/settings/settings.xml
+msgctxt "#35051"
+msgid "Test rumble"
+msgstr ""
+
+#. Description of setting to test rumble
+#: system/settings/settings.xml
+msgctxt "#35052"
+msgid "Activate the rumble motors of all controllers."
+msgstr ""
+
+#empty strings from id 35053 to 35054
 
 #. Help text for controller window
 #: xbmc/games/controllers/windows/GUIControllerWindow.cpp
@@ -16005,7 +16024,19 @@ msgctxt "#35064"
 msgid "Pair your controllers with the various input devices of different game systems."
 msgstr ""
 
-#empty strings from id 35065 to 35089
+#empty strings from id 35065 to 35087
+
+#. Name of the setting that enables/disables powering off controllers on exit
+#: system/settings/settings.xml
+msgctxt "#35088"
+msgid "Power off controllers on exit"
+msgstr ""
+
+#. Description for the setting that enables/disables powering off controllers on exit
+#: system/settings/settings.xml
+msgctxt "#35089"
+msgid "Powers off any controller that supports it on exit."
+msgstr ""
 
 #. Button prompt without timeout. %s - button name
 #: xbmc/games/controllers/guicontrols/GUIScalarFeatureButton.cpp
@@ -18849,7 +18880,19 @@ msgctxt "#36618"
 msgid "Add-ons will be given access to personal data stored on this device. By allowing, you agree that you are solely responsible for any loss of data, unwanted behaviour, or damage to your device. Proceed?"
 msgstr ""
 
-#empty strings from id 36619 to 36899
+#. Label of a setting, allow the user to specifiy high quality downscaling of pictures
+#: system/settings/settings.xml
+msgctxt "#36619"
+msgid "High quality downscaling"
+msgstr ""
+
+#. Description of setting "Pictures -> Slideshow -> High Quality Downscaling" with label #36619
+#: system/settings/settings.xml
+msgctxt "#36620"
+msgid "Enable high quality downscaling of pictures (uses more memory and has moderate performance impact)."
+msgstr ""
+
+#empty strings from id 36621 to 36899
 
 #: xbmc/media/MediaType.cpp
 msgctxt "#36900"

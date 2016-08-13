@@ -35,13 +35,13 @@ typedef enum
   ObservableMessageEpg,
   ObservableMessageEpgContainer,
   ObservableMessageEpgActiveItem,
+  ObservableMessageEpgItemUpdate,
   ObservableMessageChannelGroup,
   ObservableMessageChannelGroupReset,
   ObservableMessageTimers,
   ObservableMessageTimersReset,
   ObservableMessageRecordings,
-  ObservableMessagePeripheralsChanged,
-  ObservableMessageManagerStateChanged
+  ObservableMessagePeripheralsChanged
 } ObservableMessage;
 
 class Observer

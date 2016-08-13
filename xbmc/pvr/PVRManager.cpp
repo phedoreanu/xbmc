@@ -361,13 +361,12 @@ ManagerState CPVRManager::GetState(void) const
 
 void CPVRManager::SetState(ManagerState state)
 {
-  {
-    CSingleLock lock(m_managerStateMutex);
-    m_managerState = state;
-    SetChanged();
-  }
+  CSingleLock lock(m_managerStateMutex);
+  if (m_managerState == state)
+    return;
 
-  NotifyObservers(ObservableMessageManagerStateChanged);
+  m_managerState = state;
+  m_events.Publish(m_managerState);
 }
 
 void CPVRManager::Process(void)
@@ -1178,6 +1177,7 @@ void CPVRManager::CloseStream(void)
     g_application.SaveFileState();
   }
 
+  m_isChannelPreview = false;
   m_addons->CloseStream();
   SAFE_DELETE(m_currentFile);
 }
@@ -1226,6 +1226,7 @@ void CPVRManager::UpdateCurrentChannel(void)
     delete m_currentFile;
     m_currentFile = new CFileItem(playingChannel);
     UpdateItem(*m_currentFile);
+    m_isChannelPreview = false;
   }
 }
 

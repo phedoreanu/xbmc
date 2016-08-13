@@ -611,6 +611,11 @@
           <default>false</default>
           <control type="toggle" />
         </setting>
+        <setting id="slideshow.highqualitydownscaling" type="boolean" label="36619" help="36620">
+            <level>1</level>
+            <default>false</default>
+            <control type="toggle" />
+        </setting>
       </group>
     </category>
     <category id="language" label="14218" help="38106">
@@ -2600,6 +2605,21 @@
             <dependency type="enable" on="property" name="SupportsPeripheralControllers" />
           </dependencies>
           <control type="button" format="action" />
+        </setting>
+        <setting id="input.testrumble" type="action" label="35051" help="35052">
+          <level>2</level>
+          <dependencies>
+            <dependency type="enable" on="property" name="HasRumbleFeature" />
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="input.controllerpoweroff" type="boolean" label="35088" help="35089">
+          <level>0</level>
+          <default>false</default>
+          <dependencies>
+            <dependency type="enable" on="property" name="SupportsPeripheralControllers" />
+          </dependencies>
+          <control type="toggle" />
         </setting>
       </group>
     </category>
