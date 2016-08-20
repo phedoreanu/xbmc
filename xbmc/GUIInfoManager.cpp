@@ -102,8 +102,6 @@
 
 #if defined(TARGET_DARWIN_OSX)
 #include "platform/darwin/osx/smc.h"
-#include "linux/LinuxResourceCounter.h"
-static CLinuxResourceCounter m_resourceCounter;
 #endif
 
 #ifdef TARGET_POSIX
@@ -9163,9 +9161,7 @@ std::string CGUIInfoManager::GetSystemHeatInfo(int info)
       text = StringUtils::Format("%i%%", m_fanSpeed * 2);
       break;
     case SYSTEM_CPU_USAGE:
-#if defined(TARGET_DARWIN_OSX)
-      text = StringUtils::Format("%4.2f%%", m_resourceCounter.GetCPUUsage());
-#elif defined(TARGET_DARWIN) || defined(TARGET_WINDOWS)
+#if defined(TARGET_DARWIN) || defined(TARGET_WINDOWS)
       text = StringUtils::Format("%d%%", g_cpuInfo.getUsedPercentage());
 #else
       text = StringUtils::Format("%s", g_cpuInfo.GetCoresUsageString().c_str());
@@ -10964,7 +10960,7 @@ bool CGUIInfoManager::ConditionsChangedValues(const std::map<INFO::InfoPtr, bool
 bool CGUIInfoManager::IsPlayerChannelPreviewActive() const
 {
   bool bReturn(false);
-  if (m_playerShowInfo)
+  if (m_playerShowInfo && m_currentFile->HasPVRChannelInfoTag())
   {
     if (m_isPvrChannelPreview)
     {
@@ -10973,7 +10969,7 @@ bool CGUIInfoManager::IsPlayerChannelPreviewActive() const
     else
     {
       bReturn = !m_videoInfo.valid;
-      if (bReturn && m_currentFile->HasPVRChannelInfoTag() && m_currentFile->GetPVRChannelInfoTag()->IsRadio())
+      if (bReturn && m_currentFile->GetPVRChannelInfoTag()->IsRadio())
         bReturn = !m_audioInfo.valid;
     }
   }

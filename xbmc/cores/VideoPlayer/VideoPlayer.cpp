@@ -928,7 +928,10 @@ void CVideoPlayer::OpenDefaultStreams(bool reset)
     }
   }
   if(!valid)
+  {
     CloseStream(m_CurrentVideo, true);
+    m_processInfo->ResetVideoCodecInfo();
+  }
 
   // open audio stream
   valid   = false;
@@ -945,7 +948,10 @@ void CVideoPlayer::OpenDefaultStreams(bool reset)
   }
 
   if(!valid)
+  {
     CloseStream(m_CurrentAudio, true);
+    m_processInfo->ResetAudioCodecInfo();
+  }
 
   // enable  or disable subtitles
   bool visible = CMediaSettings::GetInstance().GetCurrentVideoSettings().m_SubtitleOn;
@@ -1971,7 +1977,6 @@ void CVideoPlayer::HandlePlaySpeed()
             m_clock.SetSpeedAdjust(adjust);
             if (m_omxplayer_mode)
               m_OmxPlayerState.av_clock.OMXSetSpeedAdjust(adjust);
-            CLog::Log(LOGDEBUG, "CVideoPlayer::HandlePlaySpeed set clock adjust: %f", adjust);
           }
         }
       }
@@ -2114,13 +2119,13 @@ void CVideoPlayer::HandlePlaySpeed()
           error /= errorwin;
         }
 
-        if(error > DVD_MSEC_TO_TIME(1000))
+        if (error > DVD_MSEC_TO_TIME(1000))
         {
           error  = (int)DVD_TIME_TO_MSEC(m_clock.GetClock()) - m_SpeedState.lastseekpts;
 
-          if(std::abs(error) > 1000)
+          if (std::abs(error) > 1000 || (m_VideoPlayerVideo->IsRewindStalled() && std::abs(error) > 100))
           {
-            CLog::Log(LOGDEBUG, "CVideoPlayer::Process - Seeking to catch up");
+            CLog::Log(LOGDEBUG, "CVideoPlayer::Process - Seeking to catch up, error was: %f", error);
             m_SpeedState.lastseekpts = (int)DVD_TIME_TO_MSEC(m_clock.GetClock());
             int direction = (m_playSpeed > 0) ? 1 : -1;
             int iTime = DVD_TIME_TO_MSEC(m_clock.GetClock() + m_State.time_offset + 1000000.0 * direction);
