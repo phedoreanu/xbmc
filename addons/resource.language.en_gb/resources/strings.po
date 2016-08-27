@@ -6831,7 +6831,6 @@ msgctxt "#13518"
 msgid "When the speed change exceeds this threshold, a pitch-correction filter will be applied. This avoids the \"chipmonk voices\" that normally result from speeding up a video"
 msgstr ""
 
-
 #empty strings from id 13519 to 13549
 
 #: system/settings/settings.xml
@@ -8522,7 +8521,7 @@ msgctxt "#16039"
 msgid "Off"
 msgstr ""
 
-#empty strings from id 16040 to 16040
+#empty string with id 16040
 
 #: xbmc/guilib/GUIRadioButtonControl.cpp"
 msgctxt "#16041"
@@ -16084,7 +16083,19 @@ msgctxt "#35077"
 msgid "Analog sticks"
 msgstr ""
 
-#empty strings from id 35078 to 35087
+#. Setting title for left analog stick deadzone
+#: system/peripherals.xml
+msgctxt "#35078"
+msgid "Left stick deadzone"
+msgstr ""
+
+#. Setting title for right analog stick deadzone
+#: system/peripherals.xml
+msgctxt "#35079"
+msgid "Right stick deadzone"
+msgstr ""
+
+#empty strings from id 35080 to 35087
 
 #. Name of the setting that enables/disables powering off controllers on exit
 #: system/settings/settings.xml
@@ -19559,4 +19570,3 @@ msgstr ""
 msgctxt "#39007"
 msgid "This provides access to where picture sources can be added and otherwise managed."
 msgstr ""
-
