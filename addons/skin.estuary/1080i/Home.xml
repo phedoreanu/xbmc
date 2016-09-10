@@ -53,13 +53,13 @@
 					<control type="button" id="5888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(5001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(5200).NumItems,0)">SetFocus(5200)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(5100).NumItems,0)">SetFocus(5100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="5001">
 						<orientation>vertical</orientation>
@@ -148,13 +148,13 @@
 					<control type="button" id="6888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(6001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(6200).NumItems,0)">SetFocus(6200)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(6100).NumItems,0)">SetFocus(6100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="6001">
 						<orientation>vertical</orientation>
@@ -242,12 +242,12 @@
 					<control type="button" id="7888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(7001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(7100).NumItems,0)">SetFocus(7100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="7001">
 						<orientation>vertical</orientation>
@@ -363,12 +363,12 @@
 					<control type="button" id="8888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(8001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(8100).NumItems,0)">SetFocus(8100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="8001">
 						<orientation>vertical</orientation>
@@ -463,12 +463,12 @@
 					<control type="button" id="11888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(11001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(11100).NumItems,0)">SetFocus(11100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="11001">
 						<orientation>vertical</orientation>
@@ -530,12 +530,12 @@
 					<control type="button" id="12888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(12001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(12100).NumItems,0)">SetFocus(12100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="12001">
 						<orientation>vertical</orientation>
@@ -567,15 +567,26 @@
 							<param name="item8_vis" value="False" />
 						</include>
 						<include content="WidgetListChannels">
-							<param name="content_path" value="pvr://channels/tv/All channels/"/>
+							<param name="content_path" value="pvr://channels/tv/*?view=lastplayed"/>
 							<param name="sortby" value="lastplayed"/>
 							<param name="sortorder" value="descending"/>
 							<param name="widget_header" value="$LOCALIZE[31016]"/>
 							<param name="widget_target" value="pvr"/>
 							<param name="list_id" value="12200"/>
 							<param name="onup_id" value="12900"/>
+							<param name="ondown_id" value="12300"/>
+							<param name="height" value="550"/>
+						</include>
+						<include content="WidgetListRecordings">
+							<param name="content_path" value="pvr://recordings/tv/active?view=flat"/>
+							<param name="sortby" value="date"/>
+							<param name="sortorder" value="descending"/>
+							<param name="widget_header" value="$LOCALIZE[31015]"/>
+							<param name="widget_target" value="pvr"/>
+							<param name="list_id" value="12300"/>
+							<param name="onup_id" value="12200"/>
 							<param name="ondown_id" value="20001"/>
-							<param name="height" value="540"/>
+							<param name="height" value="550"/>
 						</include>
 						<control type="grouplist">
 							<height>218</height>
@@ -586,22 +597,22 @@
 							<width>1360</width>
 							<control type="group">
 								<width>680</width>
-								<visible>PVR.IsRecording</visible>
+								<visible>PVR.IsRecordingTV</visible>
 								<include content="PVRWidget">
-									<param name="icon" value="$INFO[PVR.NowRecordingChannelIcon]" />
+									<param name="icon" value="$INFO[PVR.TVNowRecordingChannelIcon]" />
 									<param name="header" value="$LOCALIZE[19158]" />
-									<param name="label1" value="$INFO[PVR.NowRecordingDateTime,$LOCALIZE[19126] - ]" />
-									<param name="label2" value="$INFO[PVR.NowRecordingTitle][CR][COLOR=grey]$INFO[PVR.NowRecordingChannel][/COLOR]" />
+									<param name="label1" value="$INFO[PVR.TVNowRecordingDateTime,$LOCALIZE[19126] - ]" />
+									<param name="label2" value="$INFO[PVR.TVNowRecordingTitle][CR][COLOR=grey]$INFO[PVR.TVNowRecordingChannel][/COLOR]" />
 								</include>
 							</control>
 							<control type="group">
-								<visible>PVR.HasNonRecordingTimer</visible>
+								<visible>PVR.HasNonRecordingTVTimer</visible>
 								<width>680</width>
 								<include content="PVRWidget">
-									<param name="icon" value="$INFO[PVR.NextRecordingChannelIcon]" />
+									<param name="icon" value="$INFO[PVR.TVNextRecordingChannelIcon]" />
 									<param name="header" value="$LOCALIZE[19157]" />
-									<param name="label1" value="$INFO[PVR.NextRecordingDateTime,$LOCALIZE[19126] - ]" />
-									<param name="label2" value="$INFO[PVR.NextRecordingTitle][CR][COLOR=grey]$INFO[PVR.NextRecordingChannel][/COLOR]" />
+									<param name="label1" value="$INFO[PVR.TVNextRecordingDateTime,$LOCALIZE[19126] - ]" />
+									<param name="label2" value="$INFO[PVR.TVNextRecordingTitle][CR][COLOR=grey]$INFO[PVR.TVNextRecordingChannel][/COLOR]" />
 								</include>
 							</control>
 						</control>
@@ -613,17 +624,18 @@
 					<control type="button" id="13888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(13001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(13100).NumItems,0)">SetFocus(13100)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="13001">
 						<orientation>vertical</orientation>
 						<height>922</height>
 						<scrolltime tween="cubic" easing="out">500</scrolltime>
+						<usecontrolcoords>true</usecontrolcoords>
 						<include content="SubMenu">
 							<param name="list_id" value="13900"/>
 							<param name="ondown_id" value="13200"/>
@@ -649,15 +661,55 @@
 							<param name="item8_vis" value="False" />
 						</include>
 						<include content="WidgetListChannels">
-							<param name="content_path" value="pvr://channels/radio/All channels/"/>
+							<param name="content_path" value="pvr://channels/radio/*?view=lastplayed"/>
 							<param name="sortby" value="lastplayed"/>
 							<param name="sortorder" value="descending"/>
 							<param name="widget_header" value="$LOCALIZE[31018]"/>
 							<param name="widget_target" value="files"/>
 							<param name="list_id" value="13200"/>
 							<param name="onup_id" value="13900"/>
-							<param name="ondown_id" value="20001"/>
+							<param name="ondown_id" value="13300"/>
+							<param name="height" value="550"/>
 						</include>
+						<include content="WidgetListRecordings">
+							<param name="content_path" value="pvr://recordings/radio/active?view=flat"/>
+							<param name="sortby" value="date"/>
+							<param name="sortorder" value="descending"/>
+							<param name="widget_header" value="$LOCALIZE[31015]"/>
+							<param name="widget_target" value="pvr"/>
+							<param name="list_id" value="13300"/>
+							<param name="onup_id" value="13200"/>
+							<param name="ondown_id" value="20001"/>
+							<param name="height" value="550"/>
+						</include>
+						<control type="grouplist">
+							<height>218</height>
+							<left>478</left>
+							<top>36</top>
+							<orientation>horizontal</orientation>
+							<align>right</align>
+							<width>1360</width>
+							<control type="group">
+								<width>680</width>
+								<visible>PVR.IsRecordingRadio</visible>
+								<include content="PVRWidget">
+									<param name="icon" value="$INFO[PVR.RadioNowRecordingChannelIcon]" />
+									<param name="header" value="$LOCALIZE[19158]" />
+									<param name="label1" value="$INFO[PVR.RadioNowRecordingDateTime,$LOCALIZE[19126] - ]" />
+									<param name="label2" value="$INFO[PVR.RadioNowRecordingTitle][CR][COLOR=grey]$INFO[PVR.RadioNowRecordingChannel][/COLOR]" />
+								</include>
+							</control>
+							<control type="group">
+								<visible>PVR.HasNonRecordingRadioTimer</visible>
+								<width>680</width>
+								<include content="PVRWidget">
+									<param name="icon" value="$INFO[PVR.RadioNextRecordingChannelIcon]" />
+									<param name="header" value="$LOCALIZE[19157]" />
+									<param name="label1" value="$INFO[PVR.RadioNextRecordingDateTime,$LOCALIZE[19126] - ]" />
+									<param name="label2" value="$INFO[PVR.RadioNextRecordingTitle][CR][COLOR=grey]$INFO[PVR.RadioNextRecordingChannel][/COLOR]" />
+								</include>
+							</control>
+						</control>
 					</control>
 				</control>
 				<control type="group" id="15000">
@@ -666,13 +718,13 @@
 					<control type="button" id="15888">
 						<width>1</width>
 						<height>1</height>
-						<label>-</label>
+						<label></label>
 						<onfocus>SetFocus(15001)</onfocus>
 						<onfocus condition="Integer.IsGreater(Container(15100).NumItems,0)">SetFocus(15100)</onfocus>
 						<onfocus condition="String.IsEmpty(Weather.Plugin)">SetFocus(15300)</onfocus>
 						<onclick>noop</onclick>
-						<texturefocus>-</texturefocus>
-						<texturenofocus>-</texturenofocus>
+						<texturefocus></texturefocus>
+						<texturenofocus></texturenofocus>
 					</control>
 					<control type="grouplist" id="15001">
 						<orientation>vertical</orientation>

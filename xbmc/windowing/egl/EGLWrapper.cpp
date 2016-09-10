@@ -24,8 +24,9 @@
 #include <assert.h>
 #if defined(TARGET_ANDROID)
   #include "EGLNativeTypeAndroid.h"
-  #include "EGLNativeTypeAmlAndroid.h"
-  #include "EGLNativeTypeRKAndroid.h"
+  #if defined(HAS_LIBAMCODEC)
+    #include "EGLNativeTypeAmlAndroid.h"
+  #endif
 #endif
 #if defined(TARGET_RASPBERRY_PI)
   #include "EGLNativeTypeRaspberryPI.h"
@@ -33,11 +34,14 @@
 #if defined(HAS_IMXVPU)
   #include "EGLNativeTypeIMX.h"
 #endif
-#include "EGLNativeTypeAmlogic.h"
-#ifdef HAS_HYBRIS
-#include "EGLNativeTypeHybris.h"
+#if defined(TARGET_LINUX) && defined(HAS_LIBAMCODEC)
+  #include "EGLNativeTypeAmlogic.h"
+#endif
+#if defined(TARGET_LINUX) && defined(HAS_HYBRIS)
+  #include "EGLNativeTypeHybris.h"
 #endif
 #include "EGLNativeTypeFbdev.h"
+#endif
 #include "EGLWrapper.h"
 
 #define CheckError() m_result = eglGetError(); if(m_result != EGL_SUCCESS) CLog::Log(LOGERROR, "EGL error in %s: %x",__FUNCTION__, m_result);
@@ -92,19 +96,19 @@ bool CEGLWrapper::Initialize(const std::string &implementation)
   // Try to create each backend in sequence and go with the first one
   // that we know will work
   if (
-#if defined(TARGET_ANDROID)
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlAndroid>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRKAndroid>(implementation)) ||
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation)) ||
-#endif
-#if defined(TARGET_RASPBERRY_PI)
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation)) ||
+#if defined(TARGET_ANDROID) && defined(HAS_LIBAMCODEC)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlAndroid>(implementation))
+#elif defined(TARGET_ANDROID)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAndroid>(implementation))
+#elif defined(TARGET_RASPBERRY_PI)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeRaspberryPI>(implementation))
 #elif defined(HAS_IMXVPU)
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeIMX>(implementation)) ||
-#elif defined(HAS_HYBRIS)
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation)) ||
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeIMX>(implementation))
+#elif defined(TARGET_LINUX) && defined(HAS_LIBAMCODEC)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation))
+#elif defined(TARGET_LINUX) && defined(HAS_HYBRIS)
+      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeHybris>(implementation))
 #else
-      (nativeGuess = CreateEGLNativeType<CEGLNativeTypeAmlogic>(implementation)) ||
       (nativeGuess = CreateEGLNativeType<CEGLNativeTypeFbdev>(implementation))
 #endif
       )

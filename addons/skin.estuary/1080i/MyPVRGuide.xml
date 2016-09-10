@@ -336,7 +336,7 @@
 				</include>
 			</control>
 			<include content="TopBar">
-				<param name="breadcrumbs_label" value="$INFO[Control.GetLabel(29)] - $INFO[Control.GetLabel(30)]" />
+				<param name="breadcrumbs_label" value="$VAR[BreadcrumbsPVRGuideVar]" />
 				<param name="breadcrumbs_icon" value="icons/settings/tvguide.png" />
 			</include>
 			<include content="BottomBar">
@@ -344,11 +344,11 @@
 			</include>
 		</control>
 		<control type="label" id="29">
-			<font>-</font>
+			<font></font>
 			<include>HiddenObject</include>
 		</control>
 		<control type="label" id="30">
-			<font>-</font>
+			<font></font>
 			<include>HiddenObject</include>
 		</control>
 	</controls>
