@@ -41,7 +41,6 @@
   #include "EGLNativeTypeHybris.h"
 #endif
 #include "EGLNativeTypeFbdev.h"
-#endif
 #include "EGLWrapper.h"
 
 #define CheckError() m_result = eglGetError(); if(m_result != EGL_SUCCESS) CLog::Log(LOGERROR, "EGL error in %s: %x",__FUNCTION__, m_result);
