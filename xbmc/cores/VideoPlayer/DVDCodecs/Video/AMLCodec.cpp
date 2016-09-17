@@ -1617,7 +1617,7 @@ bool CAMLCodec::OpenDecoder(CDVDStreamInfo &hints)
         am_private->gcodec.param = (void*)(EXTERNAL_PTS | SYNC_OUTSIDE);
       break;
   }
-  am_private->gcodec.param = (void *)((uintptr_t)am_private->gcodec.param | (am_private->video_rotation_degree << 16));
+  am_private->gcodec.param = (void *)((std::uintptr_t)am_private->gcodec.param | (am_private->video_rotation_degree << 16));
 
   // translate from generic to firemware version dependent
   m_dll->codec_init_para(&am_private->gcodec, &am_private->vcodec);
