@@ -32,7 +32,8 @@ codecs that support a multitude of music and video formats.
 
 On Mavericks (OSX 10.9.x) we recommend using Xcode 6.1.
 On Yosemite (OSX 10.10.x) we recommend using Xcode 6.4.
-On El Capitan (OSX 10.11.x) we recommend using Xcode 7.2.
+On El Capitan (OSX 10.11.x) we recommend using Xcode 7.x or Xcode 8.x.
+On Sierra (macOS 10.12.x) we recomment using Xcode 8.x.
 
 NOTE TO NEW OS X USERS: All lines that are prefixed with the '$' character are
 commands that need to be typed into a Terminal window. Note that the '$'
@@ -69,6 +70,8 @@ constellations of Xcode and osx versions (to be updated once we know more):
 4. XCode 6.3.0 against OSX SDK 10.10 (Y)
 5. Xcode 6.4.0 against OSX SDK 10.10 (Y)
 6. Xcode 7.x against OSX SDK 10.11 (EC)
+7. Xcode 8.0 against OSX SDK 10.12 (EC)
+8. Xcode 8.0 against OSX SDK 10.12 (S)
 
 -----------------------------------------------------------------------------
 3.2 Install Kodi build depends
@@ -136,14 +139,6 @@ binaries from git that might cause problems.
 4.1 Using Xcode
 -----------------------------------------------------------------------------
 Start XCode and open the Kodi project (Kodi.xcodeproj) located in $HOME/Kodi.
-For development, Kodi is run from the $HOME/Kodi directory and needs to have
-the KODI_HOME environment variable set to know where that directory is located.
-To set KODI_HOME environment variable:
-
-Xcode 6 and later
- Menu -> Product -> Edit Sheme -> "Run Kodi"/"Debug" -> Add KODI_HOME into
- the List of "Environment Variables". Set the value to the path to the Kodi
- root folder. For example, "/Users/bigdog/Documents/Kodi"
 
 There are two build targets "Kodi" and "Kodi.app" (each in 32Bit and 64Bit flavour)
 with debug and release settings. The "Kodi" target is used for rapid build and
@@ -163,9 +158,8 @@ and dynamic libraries that will need to be built. Once these are built,
 subsequent builds will be faster.
 
 After the build, you can ether run Kodi for Mac from Xcode or run it from
-the command-line. If you run it from the command-line, make sure your set
-the KODI_HOME environment variable (export KODI_HOME=$HOME/Kodi). Then, to
-run the debug version:
+the command-line. 
+To run the debug version:
 
     $ ./build/Debug/Kodi
 
@@ -193,14 +187,12 @@ below(normally unneeded - for advanced developers).
 
  a)
     $ cd $HOME/Kodi
-    $ export KODI_HOME=`pwd`
     $ make xcode_depends
     $ xcodebuild -sdk macosx10.9 -project Kodi.xcodeproj -target Kodi.app ONLY_ACTIVE_ARCH=YES \
       ARCHS=x86_64 VALID_ARCHS=x86_64  -configuration Release build
 
  b) Building via make:
     $ cd $HOME/Kodi
-    $ export KODI_HOME=`pwd`
     $ make
     $ ./Kodi.bin
 

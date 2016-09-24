@@ -2,7 +2,6 @@ set(SOURCES ActorProtocol.cpp
             AlarmClock.cpp
             AliasShortcutUtils.cpp
             Archive.cpp
-            AsyncFileCopy.cpp
             auto_buffer.cpp
             Base64.cpp
             BitstreamConverter.cpp
@@ -78,7 +77,6 @@ set(HEADERS ActorProtocol.h
             AlarmClock.h
             AliasShortcutUtils.h
             Archive.h
-            AsyncFileCopy.h
             auto_buffer.h
             Base64.h
             BitstreamConverter.h
@@ -191,6 +189,6 @@ core_add_library(utils)
 
 if(NOT CORE_SYSTEM_NAME STREQUAL windows)
   if(HAVE_SSE2)
-    target_compile_options(utils PRIVATE -msse2)
+    target_compile_options(${CORE_LIBRARY} PRIVATE -msse2)
   endif()
 endif()

@@ -26,8 +26,6 @@
 
 #include "pvr/PVRManager.h"
 
-class CVideoSettings;
-
 namespace PVR
 {
   class CPVRChannelGroup;
@@ -185,6 +183,14 @@ namespace PVR
     bool PersistChannels(CPVRChannelGroup &group);
 
     bool RemoveChannelsFromGroup(const CPVRChannelGroup &group);
+
+    /*!
+     * Checks whether the specified unique combination for a channel exists in the database
+     * @param iClientId
+     * @param iUniqueId
+     * @return
+     */
+    bool ChannelExists(int iClientId, int iUniqueId);
   };
 
   /*!

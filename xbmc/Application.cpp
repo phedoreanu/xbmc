@@ -247,10 +247,6 @@ using namespace XbmcThreads;
 
 using KODI::MESSAGING::HELPERS::DialogResponse;
 
-// uncomment this if you want to use release libs in the debug build.
-// Atm this saves you 7 mb of memory
-#define USE_RELEASE_LIBS
-
 #define MAX_FFWD_SPEED 5
 
 //extern IDirectSoundRenderer* m_pAudioDecoder;
@@ -336,14 +332,16 @@ bool CApplication::OnEvent(XBMC_Event& newEvent)
         CApplicationMessenger::GetInstance().PostMsg(TMSG_QUIT);
       break;
     case XBMC_VIDEORESIZE:
-      if (g_windowManager.Initialized() &&
-          !g_advancedSettings.m_fullScreen)
+      if (g_windowManager.Initialized())
       {
         g_Windowing.SetWindowResolution(newEvent.resize.w, newEvent.resize.h);
-        g_graphicsContext.SetVideoResolution(RES_WINDOW, true);
-        CSettings::GetInstance().SetInt(CSettings::SETTING_WINDOW_WIDTH, newEvent.resize.w);
-        CSettings::GetInstance().SetInt(CSettings::SETTING_WINDOW_HEIGHT, newEvent.resize.h);
-        CSettings::GetInstance().Save();
+        if (!g_advancedSettings.m_fullScreen)
+        {
+          g_graphicsContext.SetVideoResolution(RES_WINDOW, true);
+          CSettings::GetInstance().SetInt(CSettings::SETTING_WINDOW_WIDTH, newEvent.resize.w);
+          CSettings::GetInstance().SetInt(CSettings::SETTING_WINDOW_HEIGHT, newEvent.resize.h);
+          CSettings::GetInstance().Save();
+        }
       }
       break;
     case XBMC_VIDEOMOVE:
@@ -352,8 +350,8 @@ bool CApplication::OnEvent(XBMC_Event& newEvent)
       {
         // when fullscreen, remain fullscreen and resize to the dimensions of the new screen
         RESOLUTION newRes = (RESOLUTION) g_Windowing.DesktopResolution(g_Windowing.GetCurrentScreen());
-        if (newRes != g_graphicsContext.GetVideoResolution())
-          CDisplaySettings::GetInstance().SetCurrentResolution(newRes, true);
+        CDisplaySettings::GetInstance().SetCurrentResolution(newRes, true);
+        g_graphicsContext.SetVideoResolution(g_graphicsContext.GetVideoResolution(), true);
       }
       else
 #endif
@@ -546,21 +544,7 @@ bool CApplication::Create()
     CLog::Log(LOGNOTICE, "Running on %s, kernel: %s %s %d-bit version %s", g_sysinfo.GetOsPrettyNameWithVersion().c_str(),
               g_sysinfo.GetKernelName().c_str(), g_sysinfo.GetKernelCpuFamily().c_str(), g_sysinfo.GetKernelBitness(), g_sysinfo.GetKernelVersionFull().c_str());
 
-  //! @todo - move to CPlatformXXX ???
-#if defined(TARGET_LINUX)
-#if USE_STATIC_FFMPEG
-  CLog::Log(LOGNOTICE, "FFmpeg statically linked, version: %s", FFMPEG_VERSION);
-#else  // !USE_STATIC_FFMPEG
-  CLog::Log(LOGNOTICE, "FFmpeg version: %s", FFMPEG_VERSION);
-#endif // !USE_STATIC_FFMPEG
-  if (!strstr(FFMPEG_VERSION, FFMPEG_VER_SHA))
-  {
-    if (strstr(FFMPEG_VERSION, "kodi"))
-      CLog::Log(LOGNOTICE, "WARNING: unknown ffmpeg-kodi version detected");
-    else
-      CLog::Log(LOGNOTICE, "WARNING: unsupported ffmpeg version detected");
-  }
-#endif
+  CLog::Log(LOGNOTICE, "FFmpeg version/source: %s", av_version_info());
 
   std::string cpuModel(g_cpuInfo.getCPUModel());
   if (!cpuModel.empty())
@@ -805,8 +789,7 @@ bool CApplication::CreateGUI()
   if (sav_res)
     CDisplaySettings::GetInstance().SetCurrentResolution(RES_DESKTOP, true);
 
-  if (g_advancedSettings.m_splashImage)
-    CSplash::GetInstance().Show();
+  CSplash::GetInstance().Show();
 
   // The key mappings may already have been loaded by a peripheral
   CLog::Log(LOGINFO, "load keymapping");
@@ -1144,7 +1127,9 @@ bool CApplication::Initialize()
   g_curlInterface.Unload();
 
   // initialize (and update as needed) our databases
+  CSplash::GetInstance().Show(g_localizeStrings.Get(24150));
   CDatabaseManager::GetInstance().Initialize();
+  CSplash::GetInstance().Show();
 
   StartServices();
 
@@ -1156,17 +1141,12 @@ bool CApplication::Initialize()
     CSettings::GetInstance().GetSetting(CSettings::SETTING_POWERMANAGEMENT_DISPLAYSOFF)->SetRequirementsMet(m_dpms->IsSupported());
 
     g_windowManager.CreateWindows();
-    /* window id's 3000 - 3100 are reserved for python */
 
-    // initialize splash window after splash screen disappears
-    // because we need a real window in the background which gets
-    // rendered while we load the main window or enter the master lock key
-    if (g_advancedSettings.m_splashImage)
-      g_windowManager.ActivateWindow(WINDOW_SPLASH);
-
+    CSplash::GetInstance().Show(g_localizeStrings.Get(24151));
     m_confirmSkinChange = false;
     m_incompatibleAddons = CAddonSystemSettings::GetInstance().MigrateAddons();
     m_confirmSkinChange = true;
+    CSplash::GetInstance().Show();
 
     std::string defaultSkin = ((const CSettingString*)CSettings::GetInstance().GetSetting(CSettings::SETTING_LOOKANDFEEL_SKIN))->GetDefault();
     if (!LoadSkin(CSettings::GetInstance().GetString(CSettings::SETTING_LOOKANDFEEL_SKIN)))
@@ -1178,6 +1158,12 @@ bool CApplication::Initialize()
         return false;
       }
     }
+
+    // initialize splash window after splash screen disappears
+    // because we need a real window in the background which gets
+    // rendered while we load the main window or enter the master lock key
+    if (g_advancedSettings.m_splashImage)
+      g_windowManager.ActivateWindow(WINDOW_SPLASH);
 
     if (CSettings::GetInstance().GetBool(CSettings::SETTING_MASTERLOCK_STARTUPLOCK) &&
         CProfilesManager::GetInstance().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE &&
@@ -1323,8 +1309,17 @@ void CApplication::StopPVRManager()
   CLog::Log(LOGINFO, "stopping PVRManager");
   if (g_PVRManager.IsPlaying())
     StopPlaying();
+  // stop pvr manager thread and clear all pvr data
   g_PVRManager.Stop();
+  // stop epg container thread and clear all epg data
   g_EpgContainer.Stop();
+  g_EpgContainer.Clear();
+}
+
+void CApplication::ReinitPVRManager()
+{
+  CLog::Log(LOGINFO, "restarting PVRManager");
+  g_PVRManager.Reinit();
 }
 
 void CApplication::StartServices()

@@ -663,7 +663,7 @@ CVideoPlayer::CVideoPlayer(IPlayerCallback& callback)
 
   m_SkipCommercials = true;
 
-  m_processInfo = CProcessInfo::CreateInstance();
+  m_processInfo.reset(CProcessInfo::CreateInstance());
   CreatePlayers();
 
   m_displayLost = false;
@@ -2059,6 +2059,18 @@ void CVideoPlayer::HandlePlaySpeed()
       SetCaching(CACHESTATE_DONE);
 
       m_syncTimer.Set(3000);
+    }
+    else
+    {
+      // exceptions for which stream players won't start properly
+      // 1. videoplayer has not detected a keyframe within lenght of demux buffers
+      if (m_CurrentAudio.id >= 0 && m_CurrentVideo.id >= 0 &&
+          !m_VideoPlayerAudio->AcceptsData() &&
+          m_VideoPlayerVideo->IsStalled())
+      {
+        CLog::Log(LOGWARNING, "VideoPlayer::Sync - stream player video does not start, flushing buffers");
+        FlushBuffers(false);
+      }
     }
   }
 
@@ -5039,11 +5051,6 @@ void CVideoPlayer::FrameMove()
   m_renderManager.FrameMove();
 }
 
-bool CVideoPlayer::HasFrame()
-{
-  return m_renderManager.HasFrame();
-}
-
 void CVideoPlayer::Render(bool clear, uint32_t alpha, bool gui)
 {
   m_renderManager.Render(clear, 0, alpha, gui);
@@ -5143,6 +5150,11 @@ void CVideoPlayer::GetDebugInfo(std::string &audio, std::string &video, std::str
 void CVideoPlayer::UpdateClockSync(bool enabled)
 {
   m_processInfo->SetRenderClockSync(enabled);
+}
+
+void CVideoPlayer::UpdateRenderInfo(CRenderInfo &info)
+{
+  m_processInfo->UpdateRenderInfo(info);
 }
 
 // IDispResource interface
