@@ -13,7 +13,7 @@
 			<animation effect="fade" start="100" end="0" time="300">WindowClose</animation>
 			<animation effect="fade" time="400">VisibleChange</animation>
 			<imagepath background="true" colordiffuse="35FFFFFF">$INFO[Skin.String(HomeFanart.path)]settings$INFO[Skin.String(HomeFanart.ext)]</imagepath>
-			<visible>!Player.HasMedia</visible>
+			<visible>!Player.HasMedia + !String.IsEmpty(Skin.String(HomeFanart.path))</visible>
 		</control>
 		<control type="panel" id="9000">
 			<left>92</left>
@@ -149,6 +149,21 @@
 					<label>$LOCALIZE[138]</label>
 					<onclick>ActivateWindow(systeminfo)</onclick>
 					<icon>icons/settings/sysinfo.png</icon>
+				</item>
+				<item>
+					<label>$LOCALIZE[31067]</label>
+					<onclick>ActivateWindow(eventlog)</onclick>
+					<icon>icons/settings/eventlog.png</icon>
+				</item>
+				<item>
+					<label>$LOCALIZE[10003]</label>
+					<onclick>ActivateWindow(filemanager)</onclick>
+					<icon>icons/settings/filemanager.png</icon>
+				</item>
+				<item>
+					<label>$LOCALIZE[24001]</label>
+					<onclick>ActivateWindow(addonbrowser)</onclick>
+					<icon>icons/settings/addons.png</icon>
 				</item>
 			</content>
 		</control>
