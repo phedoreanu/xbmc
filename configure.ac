@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([kodi], [16.9.804], [http://trac.kodi.tv])
+AC_INIT([kodi], [16.9.806], [http://trac.kodi.tv])
 AC_CONFIG_HEADERS([xbmc/config.h])
 AH_TOP([#pragma once])
 m4_include([m4/ax_prog_cc_for_build.m4])
@@ -244,7 +244,7 @@ AC_ARG_WITH([platform],
 
 AC_ARG_ENABLE([optimizations],
   [AS_HELP_STRING([--enable-optimizations],
-  [enable optimization (default is yes)])],
+  [enable passing -O2 to CFLAGS (default is yes)])],
   [use_optimizations=$enableval],
   [use_optimizations=yes])
 
@@ -637,9 +637,13 @@ case $host in
      ARCH="aarch64"
      use_arch="aarch64"
      use_neon=yes
-     use_gles=yes
-     use_gl=no
-     use_wayland=no
+     # Check whether --enable-gl was given.
+     if test "${enable_gl+set}" = set; then :
+       enableval=$enable_gl; use_gl=$enableval
+     else
+       use_gl=no
+       use_gles=yes
+     fi
      USE_STATIC_FFMPEG=1
      ;;
   arm*-*linux-android*)
@@ -730,6 +734,7 @@ fi
 
 # platform debug flags
 if test "$use_debug" = "yes"; then
+  CMAKE_BUILD_TYPE="Debug"
   final_message="$final_message\n  Debugging:\tYes"
   if test "$use_profiling" = "yes"; then
     final_message="$final_message\n  Profiling:\tYes"
@@ -739,6 +744,7 @@ if test "$use_debug" = "yes"; then
     DEBUG_FLAGS="-g -D_DEBUG -Wall"
   fi
 else
+  CMAKE_BUILD_TYPE="Release"
   final_message="$final_message\n  Debugging:\tNo"
   if test "$use_profiling" = "yes"; then
     final_message="$final_message\n  Profiling:\tYes"
@@ -1458,9 +1464,9 @@ if test "x$use_libcec" != "xno"; then
   # libcec is dyloaded, so we need to check for its headers and link any depends.
   if test "x$use_libcec" != "xno"; then
     if test "x$use_libcec" != "xauto"; then
-      PKG_CHECK_MODULES([CEC],[libcec >= 3.0.0],,[use_libcec="no";AC_MSG_ERROR($libcec_disabled)])
+      PKG_CHECK_MODULES([CEC],[libcec >= 4.0.0],,[use_libcec="no";AC_MSG_ERROR($libcec_disabled)])
     else
-      PKG_CHECK_MODULES([CEC],[libcec >= 3.0.0],,[use_libcec="no";AC_MSG_RESULT($libcec_disabled)])
+      PKG_CHECK_MODULES([CEC],[libcec >= 4.0.0],,[use_libcec="no";AC_MSG_RESULT($libcec_disabled)])
     fi
 
     if test "x$use_libcec" != "xno"; then
@@ -2306,6 +2312,8 @@ OUTPUT_FILES="$OUTPUT_FILES \
   .dummy"
 AC_SUBST(CORE_SYSTEM_NAME)
 AC_SUBST(CORE_SYSTEM_VARIANT)
+AC_SUBST(CROSS_COMPILING)
+AC_SUBST(CMAKE_BUILD_TYPE)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(INCLUDES)
@@ -2359,9 +2367,7 @@ AC_SUBST(HAVE_SSE4)
 AC_SUBST(USE_MMAL)
 AC_SUBST(USE_X11)
 AC_SUBST(USE_OPTICAL_DRIVE)
-AC_SUBST(USE_BREAKPAD)
 AC_SUBST(USE_HYBRIS)
-AC_SUBST(CROSS_COMPILING)
 
 # pushd and popd are not available in other shells besides bash, so implement
 # our own pushd/popd functions
@@ -2441,3 +2447,8 @@ AC_OUTPUT
 
 final_message="$final_message\n  prefix:\t$prefix\n$dashes"
 echo -e "$final_message\n"
+echo "#------------------------------------ WARNING ----------------------------------------#"
+echo "The autotools based build system is deprecated and will be removed in the next version!"
+echo "Please switch to cmake, see project/cmake/README.md"
+echo "#-------------------------------------------------------------------------------------#"
+echo -e "\n\n"

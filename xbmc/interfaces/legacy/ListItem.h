@@ -68,6 +68,16 @@ namespace XBMCAddon
     /// @param thumbnailImage       __Deprecated. Use setArt__
     /// @param path                 [opt] string
     ///
+    ///
+    ///-----------------------------------------------------------------------
+    /// @python_v16 **iconImage** and **thumbnailImage** are deprecated. Use **setArt()**.
+    ///
+    /// **Example:**
+    /// ~~~~~~~~~~~~~{.py}
+    /// ...
+    /// listitem = xbmcgui.ListItem('Casino Royale')
+    /// ...
+    /// ~~~~~~~~~~~~~
     class ListItem : public AddonClass
     {
     public:
@@ -110,7 +120,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # getLabel()
-      /// label = self.list.getSelectedItem().getLabel()
+      /// label = listitem.getLabel()
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -135,7 +145,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # getLabel2()
-      /// label = self.list.getSelectedItem().getLabel2()
+      /// label = listitem.getLabel2()
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -160,7 +170,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # setLabel(label)
-      /// self.list.getSelectedItem().setLabel('Casino Royale')
+      /// listitem.setLabel('Casino Royale')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -185,7 +195,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # setLabel2(label)
-      /// self.list.getSelectedItem().setLabel2('Casino Royale')
+      /// listitem.setLabel2('Casino Royale')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -241,12 +251,14 @@ namespace XBMCAddon
       ///
       ///
       ///-----------------------------------------------------------------------
+      /// @python_v13 New function added.
+      /// @python_v16 Added new label **icon**.
       ///
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # setArt(values)
-      /// self.list.getSelectedItem().setArt({ 'poster': 'poster.png', 'banner' : 'banner.png' })
+      /// listitem.setArt({ 'poster': 'poster.png', 'banner' : 'banner.png' })
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -279,7 +291,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # setUniqueIDs(values)
-      /// self.list.getSelectedItem().setUniqueIDs({ 'imdb': 'tt8938399', 'tmdb' : '9837493' })
+      /// listitem.setUniqueIDs({ 'imdb': 'tt8938399', 'tmdb' : '9837493' })
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -315,7 +327,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # setRating(type, rating, votes, defaultt))
-      /// self.list.getSelectedItem().setRating("imdb", 4.6, 8940, True)
+      /// listitem.setRating("imdb", 4.6, 8940, True)
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -351,7 +363,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// poster = self.list.getSelectedItem().getArt('poster')
+      /// poster = listitem.getArt('poster')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -383,7 +395,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// uniqueID = self.list.getSelectedItem().getUniqueID('imdb')
+      /// uniqueID = listitem.getUniqueID('imdb')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -415,7 +427,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// rating = self.list.getSelectedItem().getRating('imdb')
+      /// rating = listitem.getRating('imdb')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -447,7 +459,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// votes = self.list.getSelectedItem().getVotes('imdb')
+      /// votes = listitem.getVotes('imdb')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -473,7 +485,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # select(selected)
-      /// self.list.getSelectedItem().select(True)
+      /// listitem.select(True)
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -499,7 +511,7 @@ namespace XBMCAddon
       /// ~~~~~~~~~~~~~{.py}
       /// ...
       /// # isSelected()
-      /// is = self.list.getSelectedItem().isSelected()
+      /// selected = listitem.isSelected()
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -551,7 +563,7 @@ namespace XBMCAddon
       /// | setid         | integer (14)
       /// | tracknumber   | integer (3)
       /// | rating        | float (6.4) - range is 0..10
-      /// | userrating    | integer (9) - range is 1..10
+      /// | userrating    | integer (9) - range is 1..10 (0 to reset)
       /// | watched       | depreciated - use playcount instead
       /// | playcount     | integer (2) - number of times this item has been played
       /// | overlay       | integer (2) - range is `0..7`.  See \ref kodi_guilib_listitem_iconoverlay "Overlay icon types" for values
@@ -586,22 +598,28 @@ namespace XBMCAddon
       /// | dbid          | integer (23) - Only add this for items which are part of the local db. You also need to set the correct 'mediatype'!
       ///
       /// __Music Values__:
-      /// | Info label    | Description                                        |
-      /// |--------------:|:---------------------------------------------------|
-      /// | tracknumber   | integer (8)
-      /// | discnumber    | integer (2)
-      /// | duration      | integer (245) - duration in seconds
-      /// | year          | integer (1998)
-      /// | genre         | string (Rock)
-      /// | album         | string (Pulse)
-      /// | artist        | string (Muse)
-      /// | title         | string (American Pie)
-      /// | rating        | float - range is between 0 and 10
-      /// | userrating    | integer - range is 1..10
-      /// | lyrics        | string (On a dark desert highway...)
-      /// | playcount     | integer (2) - number of times this item has been played
-      /// | lastplayed    | string (%Y-%m-%d %h:%m:%s = 2009-04-05 23:16:04)
-      /// | mediatype     | string - "music", "song", "album", "artist"
+      /// | Info label               | Description                                        |
+      /// |-------------------------:|:---------------------------------------------------|
+      /// | tracknumber              | integer (8)
+      /// | discnumber               | integer (2)
+      /// | duration                 | integer (245) - duration in seconds
+      /// | year                     | integer (1998)
+      /// | genre                    | string (Rock)
+      /// | album                    | string (Pulse)
+      /// | artist                   | string (Muse)
+      /// | title                    | string (American Pie)
+      /// | rating                   | float - range is between 0 and 10
+      /// | userrating               | integer - range is 1..10
+      /// | lyrics                   | string (On a dark desert highway...)
+      /// | playcount                | integer (2) - number of times this item has been played
+      /// | lastplayed               | string (%Y-%m-%d %h:%m:%s = 2009-04-05 23:16:04)
+      /// | mediatype                | string - "music", "song", "album", "artist"
+      /// | listeners                | integer (25614)
+      /// | musicbrainztrackid       | string (cd1de9af-0b71-4503-9f96-9f5efe27923c)
+      /// | musicbrainzartistid      | string (d87e52c5-bb8d-4da8-b941-9f4928627dc8)
+      /// | musicbrainzalbumid       | string (24944755-2f68-3778-974e-f572a9e30108)
+      /// | musicbrainzalbumartistid | string (d87e52c5-bb8d-4da8-b941-9f4928627dc8)
+      /// | comment                  | string (This is a great song)
       ///
       /// __Picture Values__:
       /// | Info label    | Description                                        |
@@ -613,20 +631,57 @@ namespace XBMCAddon
       ///
       ///
       ///-----------------------------------------------------------------------
+      /// @python_v14 Added new label **discnumber**.
+      /// @python_v15 **duration** has to be set in seconds.
+      /// @python_v16 Added new label **mediatype**.
       /// @python_v17
-      /// Added labels **setid**, **set**, **imdbnumber**, **code** and **dbid**.
+      /// Added labels **setid**, **set**, **imdbnumber**, **code**, **dbid** and **userrating**.
       /// Expanded the possible infoLabels for the option **mediatype**.
       ///
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// self.list.getSelectedItem().setInfo('video', { 'genre': 'Comedy' })
+      /// listitem.setInfo('video', { 'genre': 'Comedy' })
       /// ...
       /// ~~~~~~~~~~~~~
       ///
       setInfo(...);
 #else
       void setInfo(const char* type, const InfoLabelDict& infoLabels);
+#endif
+
+#ifdef DOXYGEN_SHOULD_USE_THIS
+      ///
+      /// \ingroup python_xbmcgui_listitem
+      /// @brief \python_func{ setCast(actors) }
+      ///-----------------------------------------------------------------------
+      /// @brief Set cast including thumbnails
+      ///
+      /// @param actors            list of dictionaries (see below for relevant keys)
+      ///
+      /// - Keys:
+      /// | Label         | Description                                     |
+      /// |--------------:|:------------------------------------------------|
+      /// | name          | string (Michael C. Hall)
+      /// | role          | string (Dexter)
+      /// | thumbnail     | string (http://www.someurl.com/someimage.png)
+      /// | order         | integer (1)
+      ///
+      ///
+      ///-----------------------------------------------------------------------
+      /// @python_v17 New function added.
+      ///
+      /// **Example:**
+      /// ~~~~~~~~~~~~~{.py}
+      /// ...
+      /// actors = [{"name": "Actor 1", "role": "role 1"}, {"name": "Actor 2", "role": "role 2"}]
+      /// listitem.setCast(actors)
+      /// ...
+      /// ~~~~~~~~~~~~~
+      ///
+      setCast(...);
+#else
+      void setCast(const std::vector<Properties>& actors);
 #endif
 
 #ifdef DOXYGEN_SHOULD_USE_THIS
@@ -667,7 +722,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// self.list.getSelectedItem().addStreamInfo('video', { 'codec': 'h264', 'width' : 1280 })
+      /// listitem.addStreamInfo('video', { 'codec': 'h264', 'width' : 1280 })
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -733,8 +788,8 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// self.list.getSelectedItem().setProperty('AspectRatio', '1.85 : 1')
-      /// self.list.getSelectedItem().setProperty('StartOffset', '256.4')
+      /// listitem.setProperty('AspectRatio', '1.85 : 1')
+      /// listitem.setProperty('StartOffset', '256.4')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -762,7 +817,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// AspectRatio = self.list.getSelectedItem().getProperty('AspectRatio')
+      /// AspectRatio = listitem.getProperty('AspectRatio')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -788,7 +843,7 @@ namespace XBMCAddon
       /// **Example:**
       /// ~~~~~~~~~~~~~{.py}
       /// ...
-      /// self.list.getSelectedItem().setPath(path='/path/to/some/file.ext')
+      /// listitem.setPath(path='/path/to/some/file.ext')
       /// ...
       /// ~~~~~~~~~~~~~
       ///
@@ -824,6 +879,8 @@ namespace XBMCAddon
       /// If disabled, HEAD requests to e.g determine mime type will not be sent.
       ///
       /// @param enable  bool to enable content lookup
+      ///-----------------------------------------------------------------------
+      /// @python_v16 New function added.
       ///
       setContentLookup(...);
 #else
@@ -920,6 +977,8 @@ namespace XBMCAddon
       /// Returns the VideoInfoTag for this item.
       ///
       /// @return     video info tag
+      ///-----------------------------------------------------------------------
+      /// @python_v15 New function added.
       ///
       getVideoInfoTag();
 #else
@@ -934,10 +993,24 @@ namespace XBMCAddon
       /// Returns the MusicInfoTag for this item.
       ///
       /// @return     music info tag
+      ///-----------------------------------------------------------------------
+      /// @python_v15 New function added.
       ///
       getMusicInfoTag();
 #else
       xbmc::InfoTagMusic* getMusicInfoTag();
+#endif
+
+#ifdef DOXYGEN_SHOULD_USE_THIS
+      ///
+      /// \ingroup python_xbmcgui_listitem
+      /// @brief \python_func{ addContextMenuItems() }
+      ///-----------------------------------------------------------------------
+      /// Adds item(s) to the context menu for media lists.
+      ///-----------------------------------------------------------------------
+      /// @python_v14
+      /// Function completely removed and replaced with context menu add-ons.
+      ///
 #endif
     };
 
