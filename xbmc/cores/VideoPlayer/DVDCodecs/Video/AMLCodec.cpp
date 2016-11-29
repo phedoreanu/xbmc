@@ -1870,9 +1870,9 @@ int CAMLCodec::Decode(uint8_t *pData, size_t iSize, double dts, double pts)
 
   // if we have still frames, demux size will be small
   // and we need to pre-buffer more.
-  double target_timesize = 1.0;
+  double target_timesize = 1.5;
   if (iSize < 20)
-    target_timesize = 2.0;
+    target_timesize += 1.0;
 
   int rtn = 0;
 
