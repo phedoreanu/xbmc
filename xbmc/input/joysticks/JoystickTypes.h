@@ -26,6 +26,8 @@
 
 #include <string>
 
+namespace KODI
+{
 namespace JOYSTICK
 {
   /*!
@@ -42,6 +44,7 @@ namespace JOYSTICK
    *   2) analog stick
    *   3) accelerometer
    *   4) rumble motor
+   *   5) relative pointer
    *
    * [1] All three driver primitives (buttons, hats and axes) have a state that
    *     can be represented using a single scalar value. For this reason,
@@ -54,6 +57,21 @@ namespace JOYSTICK
     ANALOG_STICK,
     ACCELEROMETER,
     MOTOR,
+    RELPOINTER,
+  };
+
+  /*!
+   * \brief Categories of features used in the joystick library
+   */
+  enum class FEATURE_CATEGORY
+  {
+    UNKNOWN,
+    FACE,
+    SHOULDER,
+    TRIGGER,
+    ANALOG_STICK,
+    ACCELEROMETER,
+    HAPTICS,
   };
 
   /*!
@@ -120,4 +138,5 @@ namespace JOYSTICK
     SEMIAXIS,    // the positive or negative half of an axis
     MOTOR,       // a rumble motor
   };
+}
 }

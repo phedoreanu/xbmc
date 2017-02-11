@@ -1,4 +1,3 @@
-
 /*
  *      Copyright (C) 2014-2016 Team Kodi
  *      http://kodi.tv
@@ -51,10 +50,10 @@
 #endif
 
 /* current Peripheral API version */
-#define PERIPHERAL_API_VERSION "1.2.0"
+#define PERIPHERAL_API_VERSION "1.3.0"
 
 /* min. Peripheral API version */
-#define PERIPHERAL_MIN_API_VERSION "1.2.0"
+#define PERIPHERAL_MIN_API_VERSION "1.3.0"
 
 /* indicates a joystick has no preference for port number */
 #define NO_PORT_REQUESTED     (-1)
@@ -84,6 +83,7 @@ extern "C"
   {
     PERIPHERAL_TYPE_UNKNOWN,
     PERIPHERAL_TYPE_JOYSTICK,
+    PERIPHERAL_TYPE_KEYBOARD,
   } PERIPHERAL_TYPE;
 
   typedef struct PERIPHERAL_INFO
@@ -222,7 +222,9 @@ extern "C"
   typedef struct JOYSTICK_DRIVER_SEMIAXIS
   {
     int                                index;
+    int                                center;
     JOYSTICK_DRIVER_SEMIAXIS_DIRECTION direction;
+    unsigned int                       range;
   } ATTRIBUTE_PACKED JOYSTICK_DRIVER_SEMIAXIS;
 
   typedef struct JOYSTICK_DRIVER_MOTOR
@@ -287,7 +289,7 @@ extern "C"
   /*!
    * @brief Structure to transfer the methods from kodi_peripheral_dll.h to the frontend
    */
-  typedef struct PeripheralAddon
+  typedef struct KodiToAddonFuncTable_Peripheral
   {
     const char*      (__cdecl* GetPeripheralAPIVersion)(void);
     const char*      (__cdecl* GetMinimumPeripheralAPIVersion)(void);
@@ -313,7 +315,7 @@ extern "C"
     void             (__cdecl* ResetButtonMap)(const JOYSTICK_INFO*, const char*);
     void             (__cdecl* PowerOffJoystick)(unsigned int);
     ///}
-  } PeripheralAddon;
+  } KodiToAddonFuncTable_Peripheral;
 
 #ifdef __cplusplus
 }

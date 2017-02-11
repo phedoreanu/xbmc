@@ -28,6 +28,7 @@
 #include "addons/AudioDecoder.h"
 #include "addons/BinaryAddonCache.h"
 #include "addons/IAddon.h"
+#include "addons/ImageDecoder.h"
 #include "Application.h"
 #include "ServiceBroker.h"
 #include "filesystem/File.h"
@@ -70,7 +71,7 @@ void CAdvancedSettings::OnSettingsLoaded()
   CLog::Log(LOGNOTICE, "Default Audio Player: %s", m_audioDefaultPlayer.c_str());
 
   // setup any logging...
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DEBUG_SHOWLOGINFO))
+  if (CServiceBroker::GetSettings().GetBool(CSettings::SETTING_DEBUG_SHOWLOGINFO))
   {
     m_logLevel = std::max(m_logLevelHint, LOG_LEVEL_DEBUG_FREEMEM);
     CLog::Log(LOGNOTICE, "Enabled debug logging due to GUI setting (%d)", m_logLevel);
@@ -82,8 +83,8 @@ void CAdvancedSettings::OnSettingsLoaded()
   }
   CLog::SetLogLevel(m_logLevel);
 
-  m_extraLogEnabled = CSettings::GetInstance().GetBool(CSettings::SETTING_DEBUG_EXTRALOGGING);
-  setExtraLogLevel(CSettings::GetInstance().GetList(CSettings::SETTING_DEBUG_SETEXTRALOGLEVEL));
+  m_extraLogEnabled = CServiceBroker::GetSettings().GetBool(CSettings::SETTING_DEBUG_EXTRALOGGING);
+  setExtraLogLevel(CServiceBroker::GetSettings().GetList(CSettings::SETTING_DEBUG_SETEXTRALOGLEVEL));
 }
 
 void CAdvancedSettings::OnSettingsUnloaded()
@@ -160,7 +161,7 @@ void CAdvancedSettings::Initialize()
   m_videoFpsDetect = 1;
   m_videoBusyDialogDelay_ms = 500;
 
-  m_mediacodecForceSoftwareRendring = false;
+  m_mediacodecForceSoftwareRendering = false;
 
   m_videoDefaultLatency = 0.0;
 
@@ -310,7 +311,7 @@ void CAdvancedSettings::Initialize()
   m_iEdlCommBreakAutowait = 0;             // Off by default
   m_iEdlCommBreakAutowind = 0;             // Off by default
 
-  // Touchscreen  default values if no adjustment is necessarry
+  // Touchscreen  default values if no adjustment is necessary
   m_screenAlign_xOffset = 0;
   m_screenAlign_yOffset= 0;
   m_screenAlign_xStretchFactor = 1.0;
@@ -353,7 +354,7 @@ void CAdvancedSettings::Initialize()
   m_iPVRInfoToggleInterval         = 3000;
   m_bPVRChannelIconsAutoScan       = true;
   m_bPVRAutoScanIconsUserSet       = false;
-  m_iPVRNumericChannelSwitchTimeout = 1000;
+  m_iPVRNumericChannelSwitchTimeout = 2000;
 
   m_cacheMemSize = 1024 * 1024 * 20;
   m_cacheBufferMode = CACHE_BUFFER_MODE_INTERNET; // Default (buffer all internet streams/filesystems)
@@ -592,7 +593,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetBoolean(pElement,"vdpauHDdeintSkipChroma",m_videoVDPAUdeintSkipChromaHD);
     XMLUtils::GetBoolean(pElement,"useffmpegvda", m_useFfmpegVda);
 
-    XMLUtils::GetBoolean(pElement,"mediacodecforcesoftwarerendering",m_mediacodecForceSoftwareRendring);
+    XMLUtils::GetBoolean(pElement,"mediacodecforcesoftwarerendering",m_mediacodecForceSoftwareRendering);
 
     TiXmlElement* pAdjustRefreshrate = pElement->FirstChildElement("adjustrefreshrate");
     if (pAdjustRefreshrate)
@@ -834,7 +835,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     const char* hide = pElement->Attribute("hide");
     if (hide == NULL || strnicmp("false", hide, 4) != 0)
     {
-      CSetting *setting = CSettings::GetInstance().GetSetting(CSettings::SETTING_DEBUG_SHOWLOGINFO);
+      CSetting *setting = CServiceBroker::GetSettings().GetSetting(CSettings::SETTING_DEBUG_SHOWLOGINFO);
       if (setting != NULL)
         setting->SetVisible(false);
     }
@@ -991,7 +992,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
 
       if (!strFrom.empty() && !strTo.empty())
       {
-        CLog::Log(LOGDEBUG,"  Registering substition pair:");
+        CLog::Log(LOGDEBUG,"  Registering substitution pair:");
         CLog::Log(LOGDEBUG,"    From: [%s]", strFrom.c_str());
         CLog::Log(LOGDEBUG,"    To:   [%s]", strTo.c_str());
         m_pathSubstitutions.push_back(std::make_pair(strFrom,strTo));
@@ -1159,6 +1160,23 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetBoolean(pDatabase, "compression", m_databaseEpg.compression);
   }
 
+  pDatabase = pRootElement->FirstChildElement("savestatedatabase");
+  if (pDatabase)
+  {
+    XMLUtils::GetString(pDatabase, "type", m_databaseSavestates.type);
+    XMLUtils::GetString(pDatabase, "host", m_databaseSavestates.host);
+    XMLUtils::GetString(pDatabase, "port", m_databaseSavestates.port);
+    XMLUtils::GetString(pDatabase, "user", m_databaseSavestates.user);
+    XMLUtils::GetString(pDatabase, "pass", m_databaseSavestates.pass);
+    XMLUtils::GetString(pDatabase, "name", m_databaseSavestates.name);
+    XMLUtils::GetString(pDatabase, "key", m_databaseSavestates.key);
+    XMLUtils::GetString(pDatabase, "cert", m_databaseSavestates.cert);
+    XMLUtils::GetString(pDatabase, "ca", m_databaseSavestates.ca);
+    XMLUtils::GetString(pDatabase, "capath", m_databaseSavestates.capath);
+    XMLUtils::GetString(pDatabase, "ciphers", m_databaseSavestates.ciphers);
+    XMLUtils::GetBoolean(pDatabase, "compression", m_databaseSavestates.compression);
+  }
+
   pElement = pRootElement->FirstChildElement("enablemultimediakeys");
   if (pElement)
   {
@@ -1183,7 +1201,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
   }
 
   // load in the settings overrides
-  CSettings::GetInstance().Load(pRootElement, true);  // true to hide the settings we read in
+  CServiceBroker::GetSettings().Load(pRootElement, true);  // true to hide the settings we read in
 }
 
 void CAdvancedSettings::Clear()
@@ -1414,6 +1432,23 @@ std::string CAdvancedSettings::GetMusicExtensions() const
   for (size_t i=0;i<codecs.size();++i)
   {
     std::shared_ptr<CAudioDecoder> dec(std::static_pointer_cast<CAudioDecoder>(codecs[i]));
+    result += '|';
+    result += dec->GetExtensions();
+  }
+
+  return result;
+}
+
+std::string CAdvancedSettings::GetPictureExtensions() const
+{
+  std::string result(m_pictureExtensions);
+
+  VECADDONS codecs;
+  CBinaryAddonCache &addonCache = CServiceBroker::GetBinaryAddonCache();
+  addonCache.GetAddons(codecs, ADDON_IMAGEDECODER);
+  for (size_t i=0;i<codecs.size();++i)
+  {
+    std::shared_ptr<CImageDecoder> dec(std::static_pointer_cast<CImageDecoder>(codecs[i]));
     result += '|';
     result += dec->GetExtensions();
   }

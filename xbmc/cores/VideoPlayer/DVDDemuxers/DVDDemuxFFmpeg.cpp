@@ -29,6 +29,7 @@
 #include "DVDDemuxUtils.h"
 #include "DVDInputStreams/DVDInputStream.h"
 #include "DVDInputStreams/DVDInputStreamFFmpeg.h"
+#include "ServiceBroker.h"
 #include "filesystem/CurlFile.h"
 #include "filesystem/Directory.h"
 #include "filesystem/File.h"
@@ -343,9 +344,9 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
             }
             else if (trySPDIFonly)
             {
-              // not dts either, return false in case we were explicitely
+              // not dts either, return false in case we were explicitly
               // requested to only check for S/PDIF padded compressed audio
-              CLog::Log(LOGDEBUG, "%s - not spdif or dts file, fallbacking", __FUNCTION__);
+              CLog::Log(LOGDEBUG, "%s - not spdif or dts file, falling back", __FUNCTION__);
               return false;
             }
           }
@@ -507,7 +508,7 @@ bool CDVDDemuxFFmpeg::Open(CDVDInputStream* pInput, bool streaminfo, bool filein
     unsigned int nProgram = UINT_MAX;
     if (m_pFormatContext->nb_programs > 0)
     {
-      // select the corrrect program if requested
+      // select the correct program if requested
       CVariant programProp(pInput->GetProperty("program"));
       if (!programProp.isNull())
       {
@@ -825,7 +826,7 @@ double CDVDDemuxFFmpeg::ConvertTimestamp(int64_t pts, int den, int num)
     return DVD_NOPTS_VALUE;
 
   // do calculations in floats as they can easily overflow otherwise
-  // we don't care for having a completly exact timestamp anyway
+  // we don't care for having a completely exact timestamp anyway
   double timestamp = (double)pts * num  / den;
   double starttime = 0.0f;
 
@@ -1224,7 +1225,7 @@ int CDVDDemuxFFmpeg::GetNrOfStreams() const
 
 double CDVDDemuxFFmpeg::SelectAspect(AVStream* st, bool& forced)
 {
-  // trust matroshka container
+  // trust matroska container
   if (m_bMatroska && st->sample_aspect_ratio.num != 0)
   {
     forced = true;
@@ -1294,6 +1295,7 @@ void CDVDDemuxFFmpeg::CreateStreams(unsigned int program)
       // discard all unneeded streams
       for (unsigned int i = 0; i < m_pFormatContext->nb_streams; i++)
       {
+        m_pFormatContext->streams[i]->discard = AVDISCARD_NONE;
         if (GetStream(i) == nullptr)
           m_pFormatContext->streams[i]->discard = AVDISCARD_ALL;
       }
@@ -1395,6 +1397,7 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
         st->fAspect = SelectAspect(pStream, st->bForcedAspect) * pStream->codec->width / pStream->codec->height;
         st->iOrientation = 0;
         st->iBitsPerPixel = pStream->codec->bits_per_coded_sample;
+        st->iBitRate = pStream->codecpar->bit_rate;
 
         AVDictionaryEntry *rtag = av_dict_get(pStream->metadata, "rotate", NULL, 0);
         if (rtag) 
@@ -1436,7 +1439,7 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
       }
     case AVMEDIA_TYPE_SUBTITLE:
       {
-        if (pStream->codec->codec_id == AV_CODEC_ID_DVB_TELETEXT && CSettings::GetInstance().GetBool(CSettings::SETTING_VIDEOPLAYER_TELETEXTENABLED))
+        if (pStream->codec->codec_id == AV_CODEC_ID_DVB_TELETEXT && CServiceBroker::GetSettings().GetBool(CSettings::SETTING_VIDEOPLAYER_TELETEXTENABLED))
         {
           CDemuxStreamTeletext* st = new CDemuxStreamTeletext();
           stream = st;
@@ -1770,7 +1773,7 @@ unsigned int CDVDDemuxFFmpeg::HLSSelectProgram()
 {
   unsigned int prog = UINT_MAX;
 
-  int bandwidth = CSettings::GetInstance().GetInt(CSettings::SETTING_NETWORK_BANDWIDTH) * 1000;
+  int bandwidth = CServiceBroker::GetSettings().GetInt(CSettings::SETTING_NETWORK_BANDWIDTH) * 1000;
   if (bandwidth <= 0)
     bandwidth = INT_MAX;
 

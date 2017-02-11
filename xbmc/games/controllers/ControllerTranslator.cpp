@@ -21,6 +21,7 @@
 #include "ControllerTranslator.h"
 #include "ControllerDefinitions.h"
 
+using namespace KODI;
 using namespace GAME;
 using namespace JOYSTICK;
 
@@ -32,6 +33,7 @@ const char* CControllerTranslator::TranslateFeatureType(FEATURE_TYPE type)
     case FEATURE_TYPE::ANALOG_STICK:     return LAYOUT_XML_ELM_ANALOG_STICK;
     case FEATURE_TYPE::ACCELEROMETER:    return LAYOUT_XML_ELM_ACCELEROMETER;
     case FEATURE_TYPE::MOTOR:            return LAYOUT_XML_ELM_MOTOR;
+    case FEATURE_TYPE::RELPOINTER:       return LAYOUT_XML_ELM_RELPOINTER;
     default:
       break;
   }
@@ -44,8 +46,37 @@ FEATURE_TYPE CControllerTranslator::TranslateFeatureType(const std::string& strT
   if (strType == LAYOUT_XML_ELM_ANALOG_STICK)     return FEATURE_TYPE::ANALOG_STICK;
   if (strType == LAYOUT_XML_ELM_ACCELEROMETER)    return FEATURE_TYPE::ACCELEROMETER;
   if (strType == LAYOUT_XML_ELM_MOTOR)            return FEATURE_TYPE::MOTOR;
+  if (strType == LAYOUT_XML_ELM_RELPOINTER)       return FEATURE_TYPE::RELPOINTER;
 
   return FEATURE_TYPE::UNKNOWN;
+}
+
+const char* CControllerTranslator::TranslateFeatureCategory(FEATURE_CATEGORY category)
+{
+  switch (category)
+  {
+    case FEATURE_CATEGORY::FACE:          return "face";
+    case FEATURE_CATEGORY::SHOULDER:      return "shoulder";
+    case FEATURE_CATEGORY::TRIGGER:       return "triggers";
+    case FEATURE_CATEGORY::ANALOG_STICK:  return "analogsticks";
+    case FEATURE_CATEGORY::ACCELEROMETER: return "accelerometer";
+    case FEATURE_CATEGORY::HAPTICS:       return "haptics";
+    default:
+      break;
+  }
+  return "";
+}
+
+FEATURE_CATEGORY CControllerTranslator::TranslateFeatureCategory(const std::string& strCategory)
+{
+  if (strCategory == "face")           return FEATURE_CATEGORY::FACE;
+  if (strCategory == "shoulder")       return FEATURE_CATEGORY::SHOULDER;
+  if (strCategory == "triggers")       return FEATURE_CATEGORY::TRIGGER;
+  if (strCategory == "analogsticks")   return FEATURE_CATEGORY::ANALOG_STICK;
+  if (strCategory == "accelerometer")  return FEATURE_CATEGORY::ACCELEROMETER;
+  if (strCategory == "haptics")        return FEATURE_CATEGORY::HAPTICS;
+
+  return FEATURE_CATEGORY::UNKNOWN;
 }
 
 const char* CControllerTranslator::TranslateInputType(INPUT_TYPE type)

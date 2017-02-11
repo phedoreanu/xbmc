@@ -34,16 +34,30 @@
 #include "guilib/GUIWindow.h"
 #include "messaging/ApplicationMessenger.h"
 
+using namespace KODI;
 using namespace GAME;
 
-CGUIFeatureList::CGUIFeatureList(CGUIWindow* window) :
+CGUIFeatureList::CGUIFeatureList(CGUIWindow* window, const std::string& windowParam) :
   m_window(window),
   m_guiList(nullptr),
   m_guiButtonTemplate(nullptr),
   m_guiGroupTitle(nullptr),
   m_guiFeatureSeparator(nullptr),
-  m_wizard(new CGUIConfigurationWizard)
+  m_wizard(nullptr)
 {
+  if (windowParam.empty())
+  {
+    // Run wizard for all physical controllers
+    m_wizard = new CGUIConfigurationWizard(false);
+  }
+  else
+  {
+    // Run wizard for specified emulated controller
+    unsigned int number;
+    std::istringstream str(windowParam);
+    str >> number;
+    m_wizard = new CGUIConfigurationWizard(true, number);
+  }
 }
 
 CGUIFeatureList::~CGUIFeatureList(void)
@@ -147,12 +161,7 @@ void CGUIFeatureList::OnSelect(unsigned int index)
       buttons.push_back(control);
   }
 
-  m_wizard->Run(m_controller->ID(), buttons, this);
-}
-
-void CGUIFeatureList::OnSkipDetected()
-{
-  //! @todo
+  m_wizard->Run(m_controller->ID(), buttons);
 }
 
 IFeatureButton* CGUIFeatureList::GetButtonControl(unsigned int featureIndex)
@@ -178,8 +187,8 @@ std::vector<CGUIFeatureList::FeatureGroup> CGUIFeatureList::GetFeatureGroups(con
   std::vector<std::string> groupNames;
   for (const CControllerFeature& feature : features)
   {
-    if (std::find(groupNames.begin(), groupNames.end(), feature.Group()) == groupNames.end())
-      groupNames.push_back(feature.Group());
+    if (std::find(groupNames.begin(), groupNames.end(), feature.CategoryLabel()) == groupNames.end())
+      groupNames.push_back(feature.CategoryLabel());
   }
 
   // Divide features into groups
@@ -188,7 +197,7 @@ std::vector<CGUIFeatureList::FeatureGroup> CGUIFeatureList::GetFeatureGroups(con
     FeatureGroup group = { groupName };
     for (const CControllerFeature& feature : features)
     {
-      if (feature.Group() == groupName)
+      if (feature.CategoryLabel() == groupName)
         group.features.push_back(feature);
     }
     groups.emplace_back(std::move(group));

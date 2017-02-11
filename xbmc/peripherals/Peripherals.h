@@ -24,6 +24,7 @@
 #include "EventScanner.h"
 #include "bus/PeripheralBus.h"
 #include "devices/Peripheral.h"
+#include "games/ports/PortMapper.h" //! @todo Find me a better place
 #include "messaging/IMessageTarget.h"
 #include "settings/lib/ISettingCallback.h"
 #include "system.h"
@@ -38,9 +39,12 @@ class TiXmlElement;
 class CAction;
 class CKey;
 
+namespace KODI
+{
 namespace JOYSTICK
 {
   class IButtonMapper;
+}
 }
 
 namespace PERIPHERALS
@@ -276,13 +280,13 @@ namespace PERIPHERALS
      * \ref CPeripheral::RegisterJoystickButtonMapper for what is done to the
      * mapper after being given to the peripheral.
      */
-    void RegisterJoystickButtonMapper(JOYSTICK::IButtonMapper* mapper);
+    void RegisterJoystickButtonMapper(KODI::JOYSTICK::IButtonMapper* mapper);
 
     /*!
      * \brief Unregister a button mapper interface
      * \param mapper The button mapper
      */
-    void UnregisterJoystickButtonMapper(JOYSTICK::IButtonMapper* mapper);
+    void UnregisterJoystickButtonMapper(KODI::JOYSTICK::IButtonMapper* mapper);
 
     virtual void OnSettingChanged(const CSetting *setting) override;
     virtual void OnSettingAction(const CSetting *setting) override;
@@ -306,6 +310,7 @@ namespace PERIPHERALS
     std::vector<PeripheralBusPtr>        m_busses;
     std::vector<PeripheralDeviceMapping> m_mappings;
     CEventScanner                        m_eventScanner;
+	GAME::CPortMapper                    m_portMapper; //! @todo Find me a better place
     CCriticalSection                     m_critSection;
     CCriticalSection                     m_critSectionBusses;
     CCriticalSection                     m_critSectionMappings;

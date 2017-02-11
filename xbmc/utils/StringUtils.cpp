@@ -693,17 +693,6 @@ bool StringUtils::EndsWithNoCase(const std::string &str1, const char *s2)
   return true;
 }
 
-std::string StringUtils::Join(const std::vector<std::string> &strings, const std::string& delimiter)
-{
-  std::string result;
-  for(std::vector<std::string>::const_iterator it = strings.begin(); it != strings.end(); ++it )
-    result += (*it) + delimiter;
-  
-  if (!result.empty())
-    result.erase(result.size() - delimiter.size());
-  return result;
-}
-
 std::vector<std::string> StringUtils::Split(const std::string& input, const std::string& delimiter, unsigned int iMaxStrings /* = 0 */)
 {
   std::vector<std::string> results;
@@ -944,6 +933,8 @@ long StringUtils::TimeStringToSeconds(const std::string &timeString)
 
 std::string StringUtils::SecondsToTimeString(long lSeconds, TIME_FORMAT format)
 {
+  bool isNegative = lSeconds < 0;
+  lSeconds = abs(lSeconds);
   int hh = lSeconds / 3600;
   lSeconds = lSeconds % 3600;
   int mm = lSeconds / 60;
@@ -960,6 +951,8 @@ std::string StringUtils::SecondsToTimeString(long lSeconds, TIME_FORMAT format)
     strHMS += StringUtils::Format(strHMS.empty() ? "%2.2i" : ":%2.2i", mm);
   if (format & TIME_FORMAT_SS)
     strHMS += StringUtils::Format(strHMS.empty() ? "%2.2i" : ":%2.2i", ss);
+  if (isNegative)
+    strHMS = "-" + strHMS;
   return strHMS;
 }
 
@@ -1314,9 +1307,9 @@ uint64_t StringUtils::ToUint64(std::string str, uint64_t fallback) noexcept
 
 std::string StringUtils::FormatFileSize(uint64_t bytes)
 {
-  const std::array<std::string, 6> units{"B", "kB", "MB", "GB", "TB", "PB"};
+  const std::array<std::string, 6> units{{"B", "kB", "MB", "GB", "TB", "PB"}};
   if (bytes < 1000)
-    return Format("%lluB", bytes);
+    return Format("%" PRIu64 "B", bytes);
 
   int i = 0;
   double value = static_cast<double>(bytes);

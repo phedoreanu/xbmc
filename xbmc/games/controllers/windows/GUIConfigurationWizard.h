@@ -23,44 +23,63 @@
 #include "input/joysticks/DriverPrimitive.h"
 #include "input/joysticks/IButtonMapper.h"
 #include "input/keyboard/IKeyboardHandler.h"
+#include "input/mouse/IMouseInputHandler.h"
 #include "threads/CriticalSection.h"
 #include "threads/Event.h"
 #include "threads/Thread.h"
 #include "utils/Observer.h"
 
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
 
+namespace KODI
+{
+namespace KEYBOARD
+{
+  class IActionMap;
+}
+}
+
 namespace GAME
 {
   class CGUIConfigurationWizard : public IConfigurationWizard,
-                                  public JOYSTICK::IButtonMapper,
-                                  public KEYBOARD::IKeyboardHandler,
+                                  public KODI::JOYSTICK::IButtonMapper,
+                                  public KODI::KEYBOARD::IKeyboardHandler,
+                                  public KODI::MOUSE::IMouseInputHandler,
                                   public Observer,
                                   protected CThread
   {
   public:
-    CGUIConfigurationWizard();
+    CGUIConfigurationWizard(bool bEmulation, unsigned int controllerNumber = 0);
 
-    virtual ~CGUIConfigurationWizard(void) { }
+    virtual ~CGUIConfigurationWizard(void);
 
     // implementation of IConfigurationWizard
-    virtual void Run(const std::string& strControllerId, const std::vector<IFeatureButton*>& buttons, IConfigurationWizardCallback* callback) override;
+    virtual void Run(const std::string& strControllerId, const std::vector<IFeatureButton*>& buttons) override;
     virtual void OnUnfocus(IFeatureButton* button) override;
     virtual bool Abort(bool bWait = true) override;
 
     // implementation of IButtonMapper
     virtual std::string ControllerID(void) const override { return m_strControllerId; }
     virtual bool NeedsCooldown(void) const override { return true; }
-    virtual bool MapPrimitive(JOYSTICK::IButtonMap* buttonMap,
-                              JOYSTICK::IActionMap* actionMap,
-                              const JOYSTICK::CDriverPrimitive& primitive) override;
-    virtual void OnEventFrame(const JOYSTICK::IButtonMap* buttonMap, bool bMotion) override;
+    virtual bool Emulation(void) const override { return m_bEmulation; }
+    virtual unsigned int ControllerNumber(void) const override { return m_controllerNumber; }
+    virtual bool MapPrimitive(KODI::JOYSTICK::IButtonMap* buttonMap,
+                              KODI::JOYSTICK::IActionMap* actionMap,
+                              const KODI::JOYSTICK::CDriverPrimitive& primitive) override;
+    virtual void OnEventFrame(const KODI::JOYSTICK::IButtonMap* buttonMap, bool bMotion) override;
+    virtual void OnLateAxis(const KODI::JOYSTICK::IButtonMap* buttonMap, unsigned int axisIndex) override;
 
     // implementation of IKeyboardHandler
     virtual bool OnKeyPress(const CKey& key) override;
     virtual void OnKeyRelease(const CKey& key) override { }
+
+    // implementation of IMouseInputHandler
+    virtual bool OnMotion(const std::string& relpointer, int dx, int dy) override { return false; }
+    virtual bool OnButtonPress(const std::string& button) override;
+    virtual void OnButtonRelease(const std::string& button) override { }
 
     // implementation of Observer
     virtual void Notify(const Observable& obs, const ObservableMessage msg) override;
@@ -75,25 +94,30 @@ namespace GAME
     void InstallHooks(void);
     void RemoveHooks(void);
 
-    void OnMotion(const JOYSTICK::IButtonMap* buttonMap);
-    void OnMotionless(const JOYSTICK::IButtonMap* buttonMap);
+    void OnMotion(const KODI::JOYSTICK::IButtonMap* buttonMap);
+    void OnMotionless(const KODI::JOYSTICK::IButtonMap* buttonMap);
+
+    // Construction parameters
+    const bool                           m_bEmulation;
+    const unsigned int                   m_controllerNumber;
 
     // Run() parameters
     std::string                          m_strControllerId;
     std::vector<IFeatureButton*>         m_buttons;
-    IConfigurationWizardCallback*        m_callback;
 
     // State variables and mutex
     IFeatureButton*                      m_currentButton;
-    JOYSTICK::ANALOG_STICK_DIRECTION     m_currentDirection;
-    std::set<JOYSTICK::CDriverPrimitive> m_history; // History to avoid repeated features
-    unsigned int                         m_lastMappingActionMs; // The last mapping action, or 0 if not currently mapping
+    KODI::JOYSTICK::ANALOG_STICK_DIRECTION     m_currentDirection;
+    std::set<KODI::JOYSTICK::CDriverPrimitive> m_history; // History to avoid repeated features
     CCriticalSection                     m_stateMutex;
 
     // Synchronization events
     CEvent                               m_inputEvent;
     CEvent                               m_motionlessEvent;
     CCriticalSection                     m_motionMutex;
-    std::set<const JOYSTICK::IButtonMap*> m_bInMotion;
+    std::set<const KODI::JOYSTICK::IButtonMap*> m_bInMotion;
+
+    // Keyboard handling
+    std::unique_ptr<KODI::KEYBOARD::IActionMap> m_actionMap;
   };
 }

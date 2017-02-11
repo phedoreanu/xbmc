@@ -25,6 +25,7 @@
 #include "RumbleGenerator.h"
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #define DEFAULT_CONTROLLER_ID    "game.controller.default"
@@ -33,9 +34,12 @@
 #define DEFAULT_LEFT_STICK_NAME   "leftstick"
 #define DEFAULT_RIGHT_STICK_NAME  "rightstick"
 
+namespace KODI
+{
 namespace JOYSTICK
 {
   class IKeymapHandler;
+  class IButtonSequence;
 
   /*!
    * \ingroup joystick
@@ -99,5 +103,8 @@ namespace JOYSTICK
 
     // Rumble functionality
     CRumbleGenerator m_rumbleGenerator;
+
+    std::unique_ptr<IButtonSequence> m_easterEgg;
   };
+}
 }

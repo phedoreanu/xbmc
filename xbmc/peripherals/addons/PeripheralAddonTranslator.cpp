@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iterator>
 
+using namespace KODI;
 using namespace JOYSTICK;
 using namespace PERIPHERALS;
 
@@ -58,6 +59,34 @@ const char* CPeripheralAddonTranslator::TranslateError(const PERIPHERAL_ERROR er
   }
 }
 
+PeripheralType CPeripheralAddonTranslator::TranslateType(PERIPHERAL_TYPE type)
+{
+  switch (type)
+  {
+    case PERIPHERAL_TYPE_JOYSTICK:
+      return PERIPHERAL_JOYSTICK;
+    case PERIPHERAL_TYPE_KEYBOARD:
+      return PERIPHERAL_JOYSTICK_EMULATION;
+    default:
+      break;
+  }
+  return PERIPHERAL_UNKNOWN;
+}
+
+PERIPHERAL_TYPE CPeripheralAddonTranslator::TranslateType(PeripheralType type)
+{
+  switch (type)
+  {
+    case PERIPHERAL_JOYSTICK:
+      return PERIPHERAL_TYPE_JOYSTICK;
+    case PERIPHERAL_JOYSTICK_EMULATION:
+      return PERIPHERAL_TYPE_KEYBOARD;
+    default:
+      break;
+  }
+  return PERIPHERAL_TYPE_UNKNOWN;
+}
+
 CDriverPrimitive CPeripheralAddonTranslator::TranslatePrimitive(const ADDON::DriverPrimitive& primitive)
 {
   CDriverPrimitive retVal;
@@ -76,7 +105,7 @@ CDriverPrimitive CPeripheralAddonTranslator::TranslatePrimitive(const ADDON::Dri
     }
     case JOYSTICK_DRIVER_PRIMITIVE_TYPE_SEMIAXIS:
     {
-      retVal = CDriverPrimitive(primitive.DriverIndex(), TranslateSemiAxisDirection(primitive.SemiAxisDirection()));
+      retVal = CDriverPrimitive(primitive.DriverIndex(), primitive.Center(), TranslateSemiAxisDirection(primitive.SemiAxisDirection()), primitive.Range());
       break;
     }
     case JOYSTICK_DRIVER_PRIMITIVE_TYPE_MOTOR:
@@ -109,7 +138,7 @@ ADDON::DriverPrimitive CPeripheralAddonTranslator::TranslatePrimitive(const CDri
     }
     case SEMIAXIS:
     {
-      retVal = ADDON::DriverPrimitive(primitive.Index(), TranslateSemiAxisDirection(primitive.SemiAxisDirection()));
+      retVal = ADDON::DriverPrimitive(primitive.Index(), primitive.Center(), TranslateSemiAxisDirection(primitive.SemiAxisDirection()), primitive.Range());
       break;
     }
     case MOTOR:
@@ -240,5 +269,5 @@ JOYSTICK_FEATURE_TYPE CPeripheralAddonTranslator::TranslateFeatureType(JOYSTICK:
 
 ADDON::DriverPrimitive CPeripheralAddonTranslator::Opposite(const ADDON::DriverPrimitive& primitive)
 {
-  return ADDON::DriverPrimitive(primitive.DriverIndex(), primitive.SemiAxisDirection() * -1);
+  return ADDON::DriverPrimitive(primitive.DriverIndex(), primitive.Center() * -1, primitive.SemiAxisDirection() * -1, primitive.Range());
 }

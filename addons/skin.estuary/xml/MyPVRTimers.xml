@@ -6,14 +6,14 @@
 	<controls>
 		<include>DefaultBackground</include>
 		<control type="group">
-			<visible>Control.IsVisible(50)</visible>
+			<animation effect="fade" start="100" end="0" time="200" tween="sine" condition="$EXP[infodialog_active]">Conditional</animation>
 			<control type="group">
 				<include>OpenClose_Left</include>
 				<control type="fixedlist" id="50">
 					<left>0</left>
-					<top>0</top>
+					<top>list_y_offset</top>
 					<right>860</right>
-					<height>100%</height>
+					<bottom>list_y_offset</bottom>
 					<onup>50</onup>
 					<ondown>50</ondown>
 					<onleft>9000</onleft>
@@ -26,7 +26,7 @@
 						<control type="label">
 							<left>30</left>
 							<top>0</top>
-							<width>500</width>
+							<right>30</right>
 							<height>100</height>
 							<font>font36_title</font>
 							<aligny>center</aligny>
@@ -86,7 +86,7 @@
 						<control type="label">
 							<left>30</left>
 							<top>0</top>
-							<width>250</width>
+							<right>30</right>
 							<height>100</height>
 							<font>font36_title</font>
 							<aligny>center</aligny>
@@ -149,9 +149,9 @@
 				</include>
 				<control type="scrollbar" id="73">
 					<left>-50</left>
-					<top>0</top>
+					<top>list_y_offset</top>
 					<width>12</width>
-					<height>100%</height>
+					<bottom>list_y_offset</bottom>
 					<onleft>50</onleft>
 					<onright>50</onright>
 					<orientation>vertical</orientation>

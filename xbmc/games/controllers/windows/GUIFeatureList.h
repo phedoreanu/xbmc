@@ -31,11 +31,10 @@ class CGUIWindow;
 
 namespace GAME
 {
-  class CGUIFeatureList : public IFeatureList,
-                          public IConfigurationWizardCallback
+  class CGUIFeatureList : public IFeatureList
   {
   public:
-    CGUIFeatureList(CGUIWindow* window);
+    CGUIFeatureList(CGUIWindow* window, const std::string& windowParam);
     virtual ~CGUIFeatureList(void);
 
     // implementation of IFeatureList
@@ -44,9 +43,6 @@ namespace GAME
     virtual void Load(const ControllerPtr& controller) override;
     virtual void OnFocus(unsigned int index) override { }
     virtual void OnSelect(unsigned int index) override;
-
-    // implementation of IConfigurationWizardCallback
-    virtual void OnSkipDetected() override;
 
   private:
     IFeatureButton* GetButtonControl(unsigned int featureIndex);

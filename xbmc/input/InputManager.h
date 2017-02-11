@@ -20,6 +20,7 @@
 */
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -38,18 +39,41 @@
 
 class CKey;
 
+namespace KODI
+{
 namespace KEYBOARD
 {
   class IKeyboardHandler;
 }
 
+namespace MOUSE
+{
+  class IMouseButtonMap;
+  class IMouseDriverHandler;
+  class IMouseInputHandler;
+}
+}
+
+/// \addtogroup input
+/// \{
+
+/*!
+ * \ingroup input keyboard mouse touch joystick
+ * \brief Main input processing class.
+ *
+ * This class consolidates all input generated from different sources such as
+ * mouse, keyboard, joystick or touch (in \ref OnEvent).
+ *
+ * \copydoc keyboard
+ * \copydoc mouse
+ */
 class CInputManager : public ISettingCallback
 {
 private:
-  CInputManager() { }
+  CInputManager();
   CInputManager(const CInputManager&);
   CInputManager const& operator=(CInputManager const&);
-  virtual ~CInputManager() { };
+  virtual ~CInputManager();
 
 public:
   /*! \brief static method to get the current instance of the class. Creates a new instance the first time it's called.
@@ -116,7 +140,7 @@ public:
   /*! \brief Handle an input event
    * 
    * \param newEvent event details
-   * \return true on succesfully handled event
+   * \return true on successfully handled event
    * \sa XBMC_Event
    */
   bool OnEvent(XBMC_Event& newEvent);
@@ -219,15 +243,38 @@ public:
 
   virtual void OnSettingChanged(const CSetting *setting) override;
 
-  void RegisterKeyboardHandler(KEYBOARD::IKeyboardHandler* handler);
-  void UnregisterKeyboardHandler(KEYBOARD::IKeyboardHandler* handler);
+  /*! \brief Registers a handler to be called on keyboard input (e.g a game client).
+   *
+   * \param handler The handler to call on keyboard input.
+   */
+  void RegisterKeyboardHandler(KODI::KEYBOARD::IKeyboardHandler* handler);
+
+  /*! \brief Unregisters handler from keyboard input.
+   *
+   * \param[in] handler The handler to unregister from keyboard input.
+   */
+  void UnregisterKeyboardHandler(KODI::KEYBOARD::IKeyboardHandler* handler);
+
+  /*! \brief Registers a handler to be called on mouse input (e.g a game client).
+   *
+   * \param handler The handler to call on mouse input.
+   * \return[in] The controller ID that serves as a context for incoming events.
+   * \sa IMouseButtonMap
+   */
+  std::string RegisterMouseHandler(KODI::MOUSE::IMouseInputHandler* handler);
+
+  /*! \brief Unregisters handler from mouse input.
+   *
+   * \param[in] handler The handler to unregister from mouse input.
+   */
+  void UnregisterMouseHandler(KODI::MOUSE::IMouseInputHandler* handler);
 
 private:
 
   /*! \brief Process keyboard event and translate into an action
   *
   * \param CKey keypress details
-  * \return true on succesfully handled event
+  * \return true on successfully handled event
   * \sa CKey
   */
   bool OnKey(const CKey& key);
@@ -272,5 +319,18 @@ private:
   std::vector<CAction> m_queuedActions;
   CCriticalSection     m_actionMutex;
 
-  std::vector<KEYBOARD::IKeyboardHandler*> m_keyboardHandlers;
+  std::vector<KODI::KEYBOARD::IKeyboardHandler*> m_keyboardHandlers;
+
+  struct MouseHandlerHandle
+  {
+    KODI::MOUSE::IMouseInputHandler*                  inputHandler;
+    std::unique_ptr<KODI::MOUSE::IMouseDriverHandler> driverHandler;
+  };
+
+  std::vector<MouseHandlerHandle> m_mouseHandlers;
+  std::unique_ptr<KODI::MOUSE::IMouseButtonMap> m_mouseButtonMap;
+
+  std::unique_ptr<KODI::KEYBOARD::IKeyboardHandler> m_keyboardEasterEgg;
 };
+
+/// \}

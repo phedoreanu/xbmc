@@ -23,6 +23,7 @@
 #include "addons/kodi-addon-dev-kit/include/kodi/kodi_peripheral_utils.hpp"
 #include "input/joysticks/DriverPrimitive.h"
 #include "input/joysticks/JoystickTypes.h"
+#include "peripherals/PeripheralTypes.h"
 
 #include <vector>
 
@@ -33,22 +34,25 @@ namespace PERIPHERALS
   public:
     static const char* TranslateError(PERIPHERAL_ERROR error);
 
-    static JOYSTICK::CDriverPrimitive TranslatePrimitive(const ADDON::DriverPrimitive& primitive);
-    static ADDON::DriverPrimitive     TranslatePrimitive(const JOYSTICK::CDriverPrimitive& primitive);
+    static PeripheralType  TranslateType(PERIPHERAL_TYPE type);
+    static PERIPHERAL_TYPE TranslateType(PeripheralType type);
 
-    static std::vector<JOYSTICK::CDriverPrimitive> TranslatePrimitives(const std::vector<ADDON::DriverPrimitive>& primitives);
-    static std::vector<ADDON::DriverPrimitive>     TranslatePrimitives(const std::vector<JOYSTICK::CDriverPrimitive>& primitives);
+    static KODI::JOYSTICK::CDriverPrimitive TranslatePrimitive(const ADDON::DriverPrimitive& primitive);
+    static ADDON::DriverPrimitive     TranslatePrimitive(const KODI::JOYSTICK::CDriverPrimitive& primitive);
 
-    static JOYSTICK::HAT_DIRECTION       TranslateHatDirection(JOYSTICK_DRIVER_HAT_DIRECTION dir);
-    static JOYSTICK_DRIVER_HAT_DIRECTION TranslateHatDirection(JOYSTICK::HAT_DIRECTION dir);
+    static std::vector<KODI::JOYSTICK::CDriverPrimitive> TranslatePrimitives(const std::vector<ADDON::DriverPrimitive>& primitives);
+    static std::vector<ADDON::DriverPrimitive>     TranslatePrimitives(const std::vector<KODI::JOYSTICK::CDriverPrimitive>& primitives);
 
-    static JOYSTICK::HAT_STATE TranslateHatState(JOYSTICK_STATE_HAT state);
+    static KODI::JOYSTICK::HAT_DIRECTION       TranslateHatDirection(JOYSTICK_DRIVER_HAT_DIRECTION dir);
+    static JOYSTICK_DRIVER_HAT_DIRECTION TranslateHatDirection(KODI::JOYSTICK::HAT_DIRECTION dir);
 
-    static JOYSTICK::SEMIAXIS_DIRECTION       TranslateSemiAxisDirection(JOYSTICK_DRIVER_SEMIAXIS_DIRECTION dir);
-    static JOYSTICK_DRIVER_SEMIAXIS_DIRECTION TranslateSemiAxisDirection(JOYSTICK::SEMIAXIS_DIRECTION dir);
+    static KODI::JOYSTICK::HAT_STATE TranslateHatState(JOYSTICK_STATE_HAT state);
 
-    static JOYSTICK::FEATURE_TYPE TranslateFeatureType(JOYSTICK_FEATURE_TYPE type);
-    static JOYSTICK_FEATURE_TYPE  TranslateFeatureType(JOYSTICK::FEATURE_TYPE type);
+    static KODI::JOYSTICK::SEMIAXIS_DIRECTION       TranslateSemiAxisDirection(JOYSTICK_DRIVER_SEMIAXIS_DIRECTION dir);
+    static JOYSTICK_DRIVER_SEMIAXIS_DIRECTION TranslateSemiAxisDirection(KODI::JOYSTICK::SEMIAXIS_DIRECTION dir);
+
+    static KODI::JOYSTICK::FEATURE_TYPE TranslateFeatureType(JOYSTICK_FEATURE_TYPE type);
+    static JOYSTICK_FEATURE_TYPE  TranslateFeatureType(KODI::JOYSTICK::FEATURE_TYPE type);
 
     static ADDON::DriverPrimitive Opposite(const ADDON::DriverPrimitive& semiaxis);
   };
